@@ -95,6 +95,20 @@
     <div class="content" id="main-content"></div>
   </main>
 
+  <!-- Hidden Print Area (for actual browser printing) -->
+  <div id="print-area"></div>
+
+  <!-- A4 Preview Modal (for on-screen viewing) -->
+  <div id="preview-modal" class="modal-overlay" style="align-items: flex-start; overflow-y: auto; padding: 40px 20px;">
+    <div style="background: white; width: 210mm; min-height: 297mm; margin: 0 auto; padding: 20mm; position: relative; box-shadow: 0 0 50px rgba(0,0,0,0.5); color: black;" id="preview-content">
+      <!-- Content injected by JS -->
+    </div>
+    <div style="position: fixed; top: 20px; right: 20px; display: flex; gap: 12px; z-index: 2001;">
+      <button class="btn btn-primary" onclick="window.print()" style="box-shadow: 0 4px 20px rgba(0,0,0,0.5);"><i data-lucide="printer"></i> In ngay</button>
+      <button class="btn btn-ghost" onclick="closePreview()" style="background: rgba(0,0,0,0.6); color: white; border: none;"><i data-lucide="x"></i> Đóng</button>
+    </div>
+  </div>
+
   <!-- CRUD Generic Modal -->
   <div id="crud-modal" class="modal-overlay">
     <div class="modal-card">
@@ -524,7 +538,11 @@
               <h1 style="font-size:24px; font-weight:600; margin-bottom:4px;">${q ? 'Sửa Báo giá' : 'Tạo Báo giá mới'}</h1>
               <div style="color:var(--text-secondary); font-size:14px; font-family:monospace;">${currentQuoteId}</div>
            </div>
-           <button type="button" class="btn btn-ghost" onclick="loadView('quotation')"><i data-lucide="arrow-left"></i> Quay lại</button>
+           <div style="display:flex; gap:12px;">
+             <input type="file" id="excel-import-input" accept=".xlsx, .xls" style="display:none;" onchange="handleExcelImport(event)">
+             <button type="button" class="btn btn-ghost" onclick="document.getElementById('excel-import-input').click()"><i data-lucide="file-up"></i> Import Excel</button>
+             <button type="button" class="btn btn-ghost" onclick="loadView('quotation')"><i data-lucide="arrow-left"></i> Quay lại</button>
+           </div>
         </div>
 
         <div class="card" style="padding:24px; margin-bottom:24px;">
@@ -615,25 +633,232 @@
     window.calcRow = (el) => { const tr = el.closest('tr'); const qty = parseFloat(tr.querySelector('.i-qty').value)||0; const price = parseMoney(tr.querySelector('.i-price').value); tr.querySelector('.i-total').value = formatMoney(qty*price); calcTotal(); };
     window.calcTotal = () => { let sum = 0; document.querySelectorAll('.i-total').forEach(i => sum += parseMoney(i.value)); document.getElementById('q_total_display').textContent = formatMoney(sum); return sum; };
 
-    window.saveQuote = () => {
+    window.handleExcelImport = (e) => {
+      const file = e.target.files[0];
+      if(!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const data = new Uint8Array(ev.target.result);
+          const workbook = XLSX.read(data, {type: 'array'});
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+          
+          if (jsonData.length < 2) return showToast('File Excel không có dữ liệu', 'error');
+
+          // Mapping: STT | Tên sản phẩm | Nội dung | ĐVT | Số lượng | Đơn giá | Thành tiền
+          const rows = jsonData.slice(1);
+          const tbody = document.getElementById('items-body');
+          tbody.innerHTML = '';
+          
+          let importCount = 0;
+          rows.forEach(row => {
+            if(!row[1]) return; // Skip if no product name
+            const name = row[1] || '';
+            const content = row[2] || '';
+            const unit = row[3] || 'Cái';
+            const qty = parseFloat(row[4]) || 1;
+            const price = parseFloat(row[5]) || 0;
+            addBlankRow(name, content, unit, qty, price);
+            importCount++;
+          });
+          
+          calcTotal();
+          showToast(`Đã import ${importCount} sản phẩm thành công!`);
+          e.target.value = ''; // Reset input
+        } catch (err) {
+          showToast('Lỗi đọc file Excel. Vui lòng kiểm tra định dạng.', 'error');
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    };
+
+    window.saveQuote = async () => {
       const customer = document.getElementById('q_customer').value.trim();
       if(!customer) return showToast('Vui lòng nhập Khách hàng', 'error');
       const items = [];
       document.querySelectorAll('#items-body tr').forEach(tr => {
         const name = tr.querySelector('.i-name').value.trim();
-        if(name) items.push({ name, content: tr.querySelector('.i-content').value.trim(), unit: tr.querySelector('.i-unit').value.trim(), qty: parseFloat(tr.querySelector('.i-qty').value)||0, price: parseMoney(tr.querySelector('.i-price').value), total: parseMoney(tr.querySelector('.i-total').value) });
+        if(name) items.push({ 
+          name, 
+          content: tr.querySelector('.i-content').value.trim(), 
+          unit: tr.querySelector('.i-unit').value.trim(), 
+          qty: parseFloat(tr.querySelector('.i-qty').value)||0, 
+          price: parseMoney(tr.querySelector('.i-price').value), 
+          total: parseMoney(tr.querySelector('.i-total').value) 
+        });
       });
       if(!items.length) return showToast('Cần ít nhất 1 sản phẩm', 'error');
 
-      const quoteData = { id: window.currentQuoteIdTemp, customer, receiver: document.getElementById('q_receiver').value.trim(), address: document.getElementById('q_address').value.trim(), phone: document.getElementById('q_phone').value.trim(), date: document.getElementById('q_date').value, terms: document.getElementById('q_terms').value, items, totalAmount: calcTotal() };
+      const totalAmount = calcTotal();
+      const quoteData = { 
+        id: window.currentQuoteIdTemp, 
+        customer, 
+        receiver: document.getElementById('q_receiver').value.trim(), 
+        address: document.getElementById('q_address').value.trim(), 
+        phone: document.getElementById('q_phone').value.trim(), 
+        date: document.getElementById('q_date').value, 
+        terms: document.getElementById('q_terms').value, 
+        items, 
+        totalAmount 
+      };
+      
       const idx = quotes.findIndex(q => q.id === window.currentQuoteIdTemp);
       if(idx >= 0) quotes[idx] = quoteData; else quotes.unshift(quoteData);
 
       localStorage.setItem('crm_quotes', JSON.stringify(quotes));
-      showToast('Đã lưu Báo giá!'); loadView('quotation');
+      
+      // Sync to Orders module
+      await syncToOrder(quoteData);
+      
+      showToast('Đã lưu Báo giá và đồng bộ sang Đơn hàng!'); 
+      loadView('quotation');
     };
 
-    window.previewQuote = () => { alert('Chức năng In A4 đã được ẩn gọn để demo giao diện Linear. Logic vẫn giữ nguyên!'); };
+    async function syncToOrder(quoteData) {
+      try {
+        // Optional: Find customer_id by name from existing users/customers
+        // For this demo, we'll try to find an admin or user just to satisfy the model
+        // but typically we'd look up the customer table.
+        
+        const orderPayload = {
+          customer_name_manual: quoteData.customer, // Custom field if needed
+          total_price: quoteData.totalAmount,
+          items: quoteData.items.map(i => ({
+            name: i.name,
+            quantity: i.qty,
+            price: i.price
+          })),
+          status: 'pending'
+        };
+
+        // If we want to be fancy, we can search for customer by name first
+        const allUsers = await fetchAPI('/users');
+        const match = allUsers.find(u => u.name.toLowerCase() === quoteData.customer.toLowerCase());
+        if (match) orderPayload.customer_id = match.id;
+
+        await fetchAPI('/orders/admin-create', {
+          method: 'POST',
+          body: JSON.stringify(orderPayload)
+        });
+      } catch (err) {
+        console.error('Order sync failed:', err);
+      }
+    }
+
+    window.previewQuote = () => {
+      const customer = document.getElementById('q_customer').value.trim();
+      const receiver = document.getElementById('q_receiver').value.trim();
+      const phone = document.getElementById('q_phone').value.trim();
+      const address = document.getElementById('q_address').value.trim();
+      const date = document.getElementById('q_date').value;
+      const terms = document.getElementById('q_terms').value;
+      
+      const items = [];
+      document.querySelectorAll('#items-body tr').forEach(tr => {
+        const name = tr.querySelector('.i-name').value.trim();
+        if(name) items.push({ 
+          name, 
+          content: tr.querySelector('.i-content').value.trim(), 
+          unit: tr.querySelector('.i-unit').value.trim(), 
+          qty: parseFloat(tr.querySelector('.i-qty').value)||0, 
+          price: parseMoney(tr.querySelector('.i-price').value), 
+          total: parseMoney(tr.querySelector('.i-total').value) 
+        });
+      });
+
+      if(!customer) return showToast('Vui lòng nhập Khách hàng để xem trước', 'error');
+
+      const printArea = document.getElementById('print-area');
+      let itemsRows = '';
+      items.forEach((item, index) => {
+        itemsRows += `
+          <tr>
+            <td style="border: 1px solid #000; padding: 8px; text-align: center;">${index + 1}</td>
+            <td style="border: 1px solid #000; padding: 8px;"><b>${item.name}</b><br><small>${item.content}</small></td>
+            <td style="border: 1px solid #000; padding: 8px; text-align: center;">${item.unit}</td>
+            <td style="border: 1px solid #000; padding: 8px; text-align: center;">${item.qty}</td>
+            <td style="border: 1px solid #000; padding: 8px; text-align: right;">${formatMoney(item.price)}</td>
+            <td style="border: 1px solid #000; padding: 8px; text-align: right;">${formatMoney(item.total)}</td>
+          </tr>
+        `;
+      });
+
+      const totalAmount = calcTotal();
+
+      printArea.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; border-bottom: 2px solid #333; padding-bottom: 20px;">
+          <div style="display: flex; align-items: center; gap: 15px;">
+            <div style="width: 50px; height: 50px; background: #6366f1; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white;">
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            </div>
+            <div>
+              <h2 style="margin: 0; color: #1e293b; font-size: 24px;">ITS LONG AN CO., LTD</h2>
+              <p style="margin: 0; font-size: 12px; color: #64748b;">Giải pháp công nghệ & Tự động hóa</p>
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <h1 style="margin: 0; color: #1e293b; font-size: 28px; letter-spacing: 2px;">BÁO GIÁ</h1>
+            <p style="margin: 5px 0 0; font-size: 14px;">Mã số: <b>${window.currentQuoteIdTemp}</b></p>
+            <p style="margin: 0; font-size: 14px;">Ngày: ${new Date(date).toLocaleDateString('vi-VN')}</p>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 30px;">
+          <div>
+            <h4 style="margin: 0 0 10px; color: #6366f1; text-transform: uppercase; font-size: 12px;">Đơn vị nhận:</h4>
+            <p style="margin: 0; font-size: 16px;"><b>${customer}</b></p>
+            <p style="margin: 5px 0; font-size: 14px; color: #475569;">Địa chỉ: ${address || 'N/A'}</p>
+            <p style="margin: 0; font-size: 14px; color: #475569;">SĐT: ${phone || 'N/A'}</p>
+          </div>
+          <div style="text-align: right;">
+             <h4 style="margin: 0 0 10px; color: #6366f1; text-transform: uppercase; font-size: 12px;">Người đại diện:</h4>
+             <p style="margin: 0; font-size: 16px;"><b>${receiver || customer}</b></p>
+          </div>
+        </div>
+
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+          <thead>
+            <tr style="background: #f8fafc;">
+              <th style="border: 1px solid #000; padding: 12px; text-align: center; width: 40px;">STT</th>
+              <th style="border: 1px solid #000; padding: 12px; text-align: left;">Chi tiết sản phẩm / Nội dung công việc</th>
+              <th style="border: 1px solid #000; padding: 12px; text-align: center; width: 60px;">ĐVT</th>
+              <th style="border: 1px solid #000; padding: 12px; text-align: center; width: 60px;">SL</th>
+              <th style="border: 1px solid #000; padding: 12px; text-align: right; width: 120px;">Đơn giá</th>
+              <th style="border: 1px solid #000; padding: 12px; text-align: right; width: 130px;">Thành tiền</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${itemsRows}
+            <tr style="background: #f8fafc; font-weight: bold;">
+              <td colspan="5" style="border: 1px solid #000; padding: 12px; text-align: right;">TỔNG CỘNG (VNĐ)</td>
+              <td style="border: 1px solid #000; padding: 12px; text-align: right; color: #b91c1c; font-size: 18px;">${formatMoney(totalAmount)}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div style="margin-bottom: 40px;">
+          <h4 style="margin: 0 0 10px; font-size: 14px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">ĐIỀU KHOẢN THƯƠNG MẠI:</h4>
+          <p style="margin: 0; font-size: 13px; line-height: 1.6; white-space: pre-line; color: #475569;">${terms}</p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 60px; text-align: center;">
+          <div>
+            <p style="margin: 0 0 80px; font-weight: bold;">ĐẠI DIỆN KHÁCH HÀNG</p>
+            <p style="margin: 0; color: #94a3b8;">(Ký và ghi rõ họ tên)</p>
+          </div>
+          <div>
+            <p style="margin: 0 0 80px; font-weight: bold;">ĐẠI DIỆN CÔNG TY (ITS)</p>
+            <p style="margin: 0; font-size: 16px;"><b>NGUYỄN MINH THUẬN</b></p>
+            <p style="margin: 5px 0 0; color: #94a3b8;">(Đã ký)</p>
+          </div>
+        </div>
+      `;
+
+      window.print();
+    };
 
     // Dashboard Init
     async function renderDashboard(c) {
