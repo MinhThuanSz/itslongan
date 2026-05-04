@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đang xử lý... | ITS Long An CRM</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Poppins:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="auth.css">
+</head>
+<body class="auth-body oauth-body">
+  <div class="auth-bg">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+  </div>
+  <div class="oauth-card">
+    <div class="big-spinner"></div>
+    <h2>Đang xác thực...</h2>
+    <p>Vui lòng chờ trong giây lát, hệ thống đang xử lý thông tin đăng nhập của bạn.</p>
+  </div>
+  <script>
+    // Parse OAuth redirect params: /oauth-callback?token=...&name=...&avatar=...&role=...
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    const name  = params.get('name');
+    const avatar= params.get('avatar');
+    const role  = params.get('role');
+    const error = params.get('error');
+
+    if (error) {
+      document.querySelector('h2').textContent = 'Đăng nhập thất bại';
+      document.querySelector('p').textContent  = error === 'google_failed'
+        ? 'Không thể xác thực với Google. Vui lòng thử lại.'
+        : 'Không thể xác thực với Facebook. Vui lòng thử lại.';
+      document.querySelector('.big-spinner').style.display = 'none';
+      setTimeout(() => { window.location.href = 'login.html'; }, 2500);
+    } else if (token) {
+      localStorage.setItem('crm_token', token);
+      localStorage.setItem('crm_user', JSON.stringify({ name, avatar, role }));
+      // Slide out + redirect
+      document.body.classList.add('page-exit');
+      setTimeout(() => { window.location.href = 'dashboard.html'; }, 400);
+    } else {
+      window.location.href = 'login.html';
+    }
+  </script>
+</body>
+</html>

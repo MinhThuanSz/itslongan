@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CRM Pro – Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="dashboard.css" />
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <!-- Mobile Overlay -->
+  <div id="mobile-overlay" class="mobile-overlay" onclick="toggleMobileMenu()"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon"><i data-lucide="zap"></i></div>
+      <div class="sidebar-logo-text">CRM Pro</div>
+      <button class="btn-collapse" onclick="toggleSidebar()"><i data-lucide="chevron-left"></i></button>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Tổng quan</div>
+      <button class="nav-item active" onclick="loadView('dashboard')">
+        <i data-lucide="layout-dashboard"></i> <span>Dashboard</span>
+        <div class="tooltip">Dashboard</div>
+      </button>
+      
+      <div class="nav-section-label">Nghiệp vụ</div>
+      <button class="nav-item" onclick="loadView('quotation')">
+        <i data-lucide="file-text"></i> <span>Báo giá</span>
+        <div class="tooltip">Báo giá</div>
+      </button>
+      <button class="nav-item" onclick="loadView('orders')">
+        <i data-lucide="shopping-cart"></i> <span>Đơn hàng</span>
+        <div class="tooltip">Đơn hàng</div>
+      </button>
+
+      <div class="nav-section-label">Danh mục</div>
+      <button class="nav-item" onclick="loadView('products')">
+        <i data-lucide="package"></i> <span>Sản phẩm</span>
+        <div class="tooltip">Sản phẩm</div>
+      </button>
+      <button class="nav-item" onclick="loadView('customers')">
+        <i data-lucide="users"></i> <span>Khách hàng</span>
+        <div class="tooltip">Khách hàng</div>
+      </button>
+      <button class="nav-item" onclick="loadView('companies')">
+        <i data-lucide="building-2"></i> <span>Công ty</span>
+        <div class="tooltip">Công ty</div>
+      </button>
+      
+      <!-- Chỉ ADMIN mới thấy Quản lý Users -->
+      <div class="nav-section-label" id="nav-users-label">Hệ thống</div>
+      <button class="nav-item" id="nav-users-btn" onclick="loadView('users')">
+        <i data-lucide="shield"></i> <span>Người dùng</span>
+        <div class="tooltip">Người dùng</div>
+      </button>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main">
+    <header class="topbar">
+      <div style="display:flex; align-items:center; gap:16px;">
+        <button class="mobile-toggle" onclick="toggleMobileMenu()"><i data-lucide="menu"></i></button>
+        <div class="header-search">
+          <i data-lucide="search"></i>
+          <input type="text" placeholder="Tìm kiếm nhanh..." />
+        </div>
+      </div>
+      <div class="header-actions">
+        <a href="index.html" class="btn btn-ghost" style="margin-right:8px;"><i data-lucide="arrow-left"></i> Xem trang web</a>
+        <button class="btn-icon-header relative"><i data-lucide="bell"></i></button>
+        <div class="header-user" onclick="toggleDropdown(event)">
+           <div id="header-avatar" class="header-avatar">?</div>
+           <div class="header-user-info">
+             <div id="header-user-name" class="header-user-name">User</div>
+             <div id="header-user-role" class="header-user-role">Role</div>
+           </div>
+           <div class="dropdown-menu" id="user-dropdown">
+             <button class="dropdown-item" onclick="loadView('profile')"><i data-lucide="user"></i> Hồ sơ cá nhân</button>
+             <button class="dropdown-item"><i data-lucide="settings"></i> Cài đặt hệ thống</button>
+             <div class="dropdown-divider"></div>
+             <button class="dropdown-item danger" onclick="logout()"><i data-lucide="log-out"></i> Đăng xuất</button>
+           </div>
+        </div>
+      </div>
+    </header>
+    <div class="content" id="main-content"></div>
+  </main>
+
+  <!-- CRUD Generic Modal -->
+  <div id="crud-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title" id="crud-title">Thêm mới</div>
+        <button type="button" class="btn-icon-header" onclick="closeCrudModal()"><i data-lucide="x"></i></button>
+      </div>
+      <form id="crud-form" onsubmit="handleCrudSubmit(event)">
+        <div class="modal-body" id="crud-body"></div>
+        <div class="modal-footer">
+           <button type="button" class="btn btn-ghost" onclick="closeCrudModal()">Hủy bỏ</button>
+           <button type="submit" class="btn btn-primary" id="crud-submit">
+             <i data-lucide="save"></i> Lưu dữ liệu
+           </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"><i data-lucide="check-circle-2"></i> <span id="toast-msg"></span></div>
+
+  <script>
+    // ==========================================
+    // CORE SYSTEM & AUTH
+    // ==========================================
+    const API = 'http://localhost:5000';
+    const token = localStorage.getItem('crm_token');
+    const user = JSON.parse(localStorage.getItem('crm_user') || 'null');
+    
+    if (!token || !user) window.location.href = 'login.html';
+    else if (user.role === 'CUSTOMER') window.location.href = 'index.html';
+
+    // RBAC UI
+    document.getElementById('header-user-name').textContent = user.name;
+    document.getElementById('header-user-role').textContent = user.role.toLowerCase();
+    
+    if(user.avatar) {
+      document.getElementById('header-avatar').innerHTML = `<img src="${user.avatar}">`;
+    } else {
+      document.getElementById('header-avatar').textContent = user.name.charAt(0).toUpperCase();
+    }
+
+    if (user.role !== 'ADMIN') {
+      document.getElementById('nav-users-label').style.display = 'none';
+      document.getElementById('nav-users-btn').style.display = 'none';
+    }
+
+    // Initialize Sidebar State
+    const sidebar = document.getElementById('sidebar');
+    const savedCollapse = localStorage.getItem('sidebar_collapsed');
+    if(savedCollapse === 'true') sidebar.classList.add('collapsed');
+
+    window.toggleSidebar = () => {
+      sidebar.classList.toggle('collapsed');
+      localStorage.setItem('sidebar_collapsed', sidebar.classList.contains('collapsed'));
+    };
+
+    window.toggleMobileMenu = () => {
+      sidebar.classList.toggle('mobile-open');
+      document.getElementById('mobile-overlay').classList.toggle('active');
+    };
+
+    window.toggleDropdown = (e) => {
+      e.stopPropagation();
+      document.getElementById('user-dropdown').classList.toggle('show');
+    };
+    
+    document.addEventListener('click', () => {
+      const drop = document.getElementById('user-dropdown');
+      if (drop && drop.classList.contains('show')) drop.classList.remove('show');
+    });
+
+    // Helper Functions
+    const showToast = (msg, type = 'success') => {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-msg').textContent = msg;
+      const iconStr = type === 'success' ? 'check-circle-2' : 'alert-circle';
+      toast.querySelector('i').setAttribute('data-lucide', iconStr);
+      lucide.createIcons();
+      toast.className = `toast show ${type}`;
+      setTimeout(() => toast.className = 'toast', 3000);
+    };
+
+    const logout = () => { localStorage.clear(); window.location.href = 'login.html'; };
+    const formatMoney = (amount) => amount ? parseFloat(amount).toLocaleString('vi-VN') : '0';
+    const parseMoney = (str) => str ? parseFloat(str.toString().replace(/\./g, '').replace(/,/g, '')) || 0 : 0;
+
+    const fetchAPI = async (endpoint, options = {}) => {
+      const res = await fetch(`${API}${endpoint}`, {
+        ...options,
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, ...(options.headers || {}) }
+      });
+      if (!res.ok) {
+        if(res.status === 401 || res.status === 403) logout();
+        const err = await res.json().catch(()=>({}));
+        throw new Error(err.message || 'Lỗi server');
+      }
+      return res.json();
+    };
+
+    // State
+    let currentModule = '';
+    let currentData = [];
+    let currentEditId = null;
+    let quotes = JSON.parse(localStorage.getItem('crm_quotes')) || [];
+
+    // ==========================================
+    // ROUTING & VIEW ENGINE
+    // ==========================================
+    const updateNav = (view) => {
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      const activeBtn = document.querySelector(`[onclick="loadView('${view.split('_')[0]}')"]`);
+      if(activeBtn) activeBtn.classList.add('active');
+      if(window.innerWidth < 768) {
+        sidebar.classList.remove('mobile-open');
+        document.getElementById('mobile-overlay').classList.remove('active');
+      }
+    };
+
+    const loadView = async (view, param = null) => {
+      updateNav(view);
+      currentModule = view;
+      const content = document.getElementById('main-content');
+      
+      if(view !== 'quotation_form') {
+        content.innerHTML = `
+          <div style="display:flex; justify-content:space-between; margin-bottom:24px;">
+             <div class="skeleton" style="width:200px; height:30px;"></div>
+             <div class="skeleton" style="width:120px; height:36px;"></div>
+          </div>
+          <div class="card">
+            <div style="padding:24px;"><div class="skeleton" style="height:200px"></div></div>
+          </div>`;
+      }
+
+      try {
+        if (view === 'dashboard') await renderDashboard(content);
+        else if (view === 'orders') await renderModule(content, 'orders');
+        else if (view === 'products') await renderModule(content, 'products');
+        else if (view === 'users') await renderModule(content, 'users');
+        else if (view === 'customers') await renderModule(content, 'customers');
+        else if (view === 'companies') await renderModule(content, 'companies');
+        else if (view === 'quotation') await renderQuotationList(content);
+        else if (view === 'quotation_form') await renderQuotationForm(content, param);
+        else if (view === 'profile') await renderProfile(content);
+      } catch (err) {
+        content.innerHTML = `<div class="empty-state"><div class="empty-icon"><i data-lucide="x-circle"></i></div><h3>Lỗi tải dữ liệu</h3><p class="text-secondary">${err.message}</p></div>`;
+      }
+      lucide.createIcons();
+    };
+
+    // ==========================================
+    // GENERIC CRUD MODULE
+    // ==========================================
+    async function renderModule(container, module) {
+      let data = [];
+      if (module === 'customers') {
+        const allUsers = await fetchAPI('/users');
+        data = allUsers.filter(u => u.role === 'CUSTOMER');
+      } else {
+        data = await fetchAPI(`/${module}`);
+      }
+      currentData = data;
+
+      let thead = '', tbody = '';
+      if(data.length === 0) {
+        tbody = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon"><i data-lucide="database"></i></div><h3>Chưa có dữ liệu</h3><p style="color:var(--text-secondary)">Bắt đầu bằng cách tạo bản ghi đầu tiên.</p></div></td></tr>`;
+      } else {
+        tbody = data.map(item => buildRow(module, item)).join('');
+      }
+
+      const titles = { users: 'Người dùng', customers: 'Khách hàng', products: 'Sản phẩm', companies: 'Công ty', orders: 'Đơn hàng' };
+
+      if(module === 'users' || module === 'customers') thead = `<tr><th>Họ tên</th><th>Email</th><th>Vai trò</th><th style="text-align:right">Thao tác</th></tr>`;
+      else if(module === 'products') thead = `<tr><th>Mã SP</th><th>Tên sản phẩm</th><th>Đơn giá</th><th>Tồn kho</th><th style="text-align:right">Thao tác</th></tr>`;
+      else if(module === 'companies') thead = `<tr><th>Tên Công ty</th><th>Email</th><th>SĐT</th><th style="text-align:right">Thao tác</th></tr>`;
+      else if(module === 'orders') thead = `<tr><th>Mã Đơn</th><th>Khách hàng</th><th>Tổng tiền</th><th>Trạng thái</th><th>Ngày tạo</th><th style="text-align:right">Thao tác</th></tr>`;
+
+      container.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:24px;">
+           <div>
+              <h1 style="font-size:24px; font-weight:600; margin-bottom:4px;">${titles[module]}</h1>
+              <div style="color:var(--text-secondary); font-size:14px;">Quản lý dữ liệu hệ thống</div>
+           </div>
+           ${module !== 'orders' ? `<button type="button" class="btn btn-primary" onclick="openCrudModal()"><i data-lucide="plus"></i> Thêm mới</button>` : ''}
+        </div>
+        <div class="card table-card">
+          <div class="table-header-row">
+            <div class="table-title">Danh sách ${titles[module].toLowerCase()}</div>
+            <div class="header-search" style="width:250px;">
+              <i data-lucide="search"></i>
+              <input type="text" placeholder="Tìm kiếm..." onkeyup="filterTable(this.value)">
+            </div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table id="data-table"><thead>${thead}</thead><tbody>${tbody}</tbody></table>
+          </div>
+        </div>
+      `;
+    }
+
+    function buildRow(module, item) {
+      if(module === 'users' || module === 'customers') {
+        const badge = `badge-${item.role.toLowerCase()}`;
+        return `<tr>
+          <td><div style="font-weight:600">${item.name}</div></td><td style="color:var(--text-secondary)">${item.email}</td>
+          <td><span class="badge ${badge}"><i data-lucide="user"></i> ${item.role}</span></td>
+          <td style="text-align:right">
+            <button type="button" class="btn-icon-header" onclick="openCrudModal(${item.id})"><i data-lucide="edit-2" style="width:16px;height:16px;"></i></button>
+            <button type="button" class="btn-icon-header" style="color:var(--danger)" onclick="deleteRecord(${item.id})"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></button>
+          </td>
+        </tr>`;
+      }
+      if(module === 'products') {
+        return `<tr>
+          <td style="font-family:monospace; color:var(--text-secondary)">${item.product_code}</td><td><div style="font-weight:600">${item.name}</div></td>
+          <td style="font-weight:600">${formatMoney(item.price)} đ</td><td>${item.stock}</td>
+          <td style="text-align:right">
+            <button type="button" class="btn-icon-header" onclick="openCrudModal(${item.id})"><i data-lucide="edit-2" style="width:16px;height:16px;"></i></button>
+            <button type="button" class="btn-icon-header" style="color:var(--danger)" onclick="deleteRecord(${item.id})"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></button>
+          </td>
+        </tr>`;
+      }
+      if(module === 'companies') {
+        return `<tr>
+          <td><div style="font-weight:600">${item.name}</div></td><td style="color:var(--text-secondary)">${item.email || '-'}</td><td>${item.phone || '-'}</td>
+          <td style="text-align:right">
+            <button type="button" class="btn-icon-header" onclick="openCrudModal(${item.id})"><i data-lucide="edit-2" style="width:16px;height:16px;"></i></button>
+            <button type="button" class="btn-icon-header" style="color:var(--danger)" onclick="deleteRecord(${item.id})"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></button>
+          </td>
+        </tr>`;
+      }
+      if(module === 'orders') {
+        let badgeClass = 'badge-pending', icon = 'clock';
+        if(item.status === 'completed') { badgeClass = 'badge-completed'; icon = 'check-circle-2'; }
+        if(item.status === 'canceled') { badgeClass = 'badge-canceled'; icon = 'x-circle'; }
+        return `<tr>
+          <td style="font-family:monospace; font-weight:600;">${item.order_code}</td><td>${item.customer?.name || '-'}</td>
+          <td style="font-weight:600">${formatMoney(item.total_price)} đ</td>
+          <td><span class="badge ${badgeClass}"><i data-lucide="${icon}"></i> ${item.status}</span></td>
+          <td style="color:var(--text-secondary)">${new Date(item.created_at).toLocaleDateString('vi-VN')}</td>
+          <td style="text-align:right">
+            <button type="button" class="btn-icon-header" style="color:var(--success)" title="Hoàn thành" onclick="updateOrderStatus(${item.id}, 'completed')"><i data-lucide="check" style="width:16px;height:16px;"></i></button>
+            <button type="button" class="btn-icon-header" style="color:var(--danger)" title="Hủy" onclick="updateOrderStatus(${item.id}, 'canceled')"><i data-lucide="x" style="width:16px;height:16px;"></i></button>
+          </td>
+        </tr>`;
+      }
+    }
+
+    window.filterTable = (query) => {
+      query = query.toLowerCase();
+      document.querySelectorAll('#data-table tbody tr').forEach(row => {
+        if(row.querySelector('.empty-state')) return;
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(query) ? '' : 'none';
+      });
+    };
+
+    // --- CRUD MODAL LOGIC ---
+    window.openCrudModal = (id = null) => {
+      if (id && typeof id === 'object') id = null;
+      currentEditId = id;
+      const item = id ? currentData.find(x => x.id === id) : {};
+      const title = document.getElementById('crud-title');
+      const body = document.getElementById('crud-body');
+      
+      let html = '';
+      if(currentModule === 'users' || currentModule === 'customers') {
+        title.textContent = id ? 'Cập nhật Người dùng' : 'Thêm Người dùng mới';
+        html = `
+          <div class="form-group"><label>Họ tên *</label><input type="text" id="m_name" value="${item.name||''}" required></div>
+          <div class="form-group"><label>Email *</label><input type="email" id="m_email" value="${item.email||''}" required ${id?'readonly':''}></div>
+          ${!id ? `<div class="form-group"><label>Mật khẩu *</label><input type="password" id="m_pass" required></div>` : ''}
+          <div class="form-group"><label>Vai trò</label>
+            <select id="m_role" ${currentModule==='customers' ? 'disabled' : ''}>
+              <option value="CUSTOMER" ${item.role==='CUSTOMER' || currentModule==='customers' ? 'selected':''}>Khách hàng (CUSTOMER)</option>
+              <option value="MANAGER" ${item.role==='MANAGER' ? 'selected':''}>Quản lý (MANAGER)</option>
+              <option value="ADMIN" ${item.role==='ADMIN' ? 'selected':''}>Quản trị (ADMIN)</option>
+            </select>
+          </div>
+        `;
+      } else if (currentModule === 'products') {
+        title.textContent = id ? 'Cập nhật Sản phẩm' : 'Thêm Sản phẩm mới';
+        html = `
+          <div class="form-group"><label>Mã SP *</label><input type="text" id="m_code" value="${item.product_code||''}" required></div>
+          <div class="form-group"><label>Tên Sản phẩm *</label><input type="text" id="m_name" value="${item.name||''}" required></div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+            <div class="form-group"><label>Đơn giá (VNĐ) *</label><input type="number" id="m_price" value="${item.price||0}" required></div>
+            <div class="form-group"><label>Tồn kho *</label><input type="number" id="m_stock" value="${item.stock||0}" required></div>
+          </div>
+        `;
+      } else if (currentModule === 'companies') {
+        title.textContent = id ? 'Cập nhật Công ty' : 'Thêm Công ty mới';
+        html = `
+          <div class="form-group"><label>Tên Công ty *</label><input type="text" id="m_name" value="${item.name||''}" required></div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+             <div class="form-group"><label>Email</label><input type="email" id="m_email" value="${item.email||''}"></div>
+             <div class="form-group"><label>Số điện thoại</label><input type="text" id="m_phone" value="${item.phone||''}"></div>
+          </div>
+          <div class="form-group"><label>Địa chỉ</label><textarea id="m_addr" rows="2">${item.address||''}</textarea></div>
+        `;
+      }
+
+      body.innerHTML = html;
+      document.getElementById('crud-modal').classList.add('show');
+    };
+
+    window.closeCrudModal = () => document.getElementById('crud-modal').classList.remove('show');
+
+    window.handleCrudSubmit = async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('crud-submit');
+      const originalText = btn.innerHTML;
+      btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" class="spin"></i> Đang lưu...';
+      lucide.createIcons();
+      
+      try {
+        let payload = {};
+        let endpoint = `/${currentModule === 'customers' ? 'users' : currentModule}`;
+        let method = currentEditId ? 'PUT' : 'POST';
+        if(currentEditId) endpoint += `/${currentEditId}`;
+
+        if(currentModule === 'users' || currentModule === 'customers') {
+          payload = { name: document.getElementById('m_name').value, role: document.getElementById('m_role').value };
+          if(!currentEditId) {
+            payload.email = document.getElementById('m_email').value;
+            payload.password = document.getElementById('m_pass').value;
+            endpoint = '/auth/register'; method = 'POST';
+          }
+        } else if (currentModule === 'products') {
+          payload = { product_code: document.getElementById('m_code').value, name: document.getElementById('m_name').value, price: document.getElementById('m_price').value, stock: document.getElementById('m_stock').value };
+        } else if (currentModule === 'companies') {
+          payload = { name: document.getElementById('m_name').value, email: document.getElementById('m_email').value, phone: document.getElementById('m_phone').value, address: document.getElementById('m_addr').value };
+        }
+
+        await fetchAPI(endpoint, { method, body: JSON.stringify(payload) });
+        showToast(currentEditId ? 'Cập nhật thành công!' : 'Thêm mới thành công!');
+        closeCrudModal();
+        loadView(currentModule);
+      } catch(err) {
+        showToast(err.message, 'error');
+      } finally {
+        btn.disabled = false; btn.innerHTML = originalText;
+        lucide.createIcons();
+      }
+    };
+
+    window.deleteRecord = async (id) => {
+      if(!confirm('Bạn có chắc muốn xóa bản ghi này? Thao tác không thể phục hồi.')) return;
+      try {
+        let endpoint = `/${currentModule === 'customers' ? 'users' : currentModule}/${id}`;
+        await fetchAPI(endpoint, { method: 'DELETE' });
+        showToast('Đã xóa thành công!');
+        loadView(currentModule);
+      } catch(err) { showToast(err.message, 'error'); }
+    };
+
+    window.updateOrderStatus = async (id, status) => {
+      try {
+        await fetchAPI(`/orders/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) });
+        showToast(`Cập nhật trạng thái thành công`);
+        loadView('orders');
+      } catch (err) { showToast(err.message, 'error'); }
+    };
+
+    // ==========================================
+    // QUOTATION MODULE (LocalStorage)
+    // ==========================================
+    async function renderQuotationList(container) {
+      let tbody = quotes.length ? quotes.map(q => `
+        <tr>
+          <td style="font-family:monospace; font-weight:600">${q.id}</td>
+          <td><div style="font-weight:600">${q.customer}</div></td>
+          <td style="color:var(--text-secondary)">${new Date(q.date).toLocaleDateString('vi-VN')}</td>
+          <td style="font-weight:600">${formatMoney(q.totalAmount)} đ</td>
+          <td style="text-align:right">
+            <button type="button" class="btn-icon-header" onclick="loadView('quotation_form', '${q.id}')"><i data-lucide="edit-2" style="width:16px;height:16px;"></i></button>
+            <button type="button" class="btn-icon-header" style="color:var(--danger)" onclick="deleteQuote('${q.id}')"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></button>
+          </td>
+        </tr>
+      `).join('') : `<tr><td colspan="5"><div class="empty-state"><div class="empty-icon"><i data-lucide="file-text"></i></div><h3>Chưa có báo giá</h3><p style="color:var(--text-secondary)">Bắt đầu bằng cách tạo báo giá đầu tiên.</p></div></td></tr>`;
+
+      container.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:24px;">
+           <div>
+              <h1 style="font-size:24px; font-weight:600; margin-bottom:4px;">Báo giá</h1>
+              <div style="color:var(--text-secondary); font-size:14px;">Quản lý chứng từ báo giá</div>
+           </div>
+           <button type="button" class="btn btn-primary" onclick="loadView('quotation_form')"><i data-lucide="plus"></i> Tạo Báo giá</button>
+        </div>
+        <div class="card table-card">
+          <div class="table-header-row">
+            <div class="table-title">Danh sách Báo giá</div>
+            <div class="header-search" style="width:250px;"><i data-lucide="search"></i><input type="text" placeholder="Tìm kiếm..." onkeyup="filterTable(this.value)"></div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table id="data-table"><thead><tr><th>Mã BG</th><th>Khách hàng</th><th>Ngày tạo</th><th>Tổng tiền</th><th style="text-align:right">Thao tác</th></tr></thead><tbody>${tbody}</tbody></table>
+          </div>
+        </div>
+      `;
+    }
+
+    window.deleteQuote = (id) => {
+      if(confirm(`Xóa báo giá ${id}?`)) {
+        quotes = quotes.filter(q => q.id !== id);
+        localStorage.setItem('crm_quotes', JSON.stringify(quotes));
+        showToast('Đã xóa báo giá!');
+        loadView('quotation');
+      }
+    };
+
+    async function renderQuotationForm(container, quoteId) {
+      const currentQuoteId = quoteId || `BG-ITS-${new Date().toISOString().slice(2,10).replace(/-/g,'')}-${Math.floor(Math.random()*1000).toString().padStart(3,'0')}`;
+      window.currentQuoteIdTemp = currentQuoteId;
+      const q = quoteId ? quotes.find(x => x.id === quoteId) : null;
+      
+      let ordersHtml = '<option value="">-- Chọn đơn hàng để tự động điền --</option>';
+      try {
+        const orders = await fetchAPI('/orders');
+        window.tempOrders = orders;
+        orders.forEach(o => { ordersHtml += `<option value="${o.id}">${o.order_code} - ${o.customer?.name || 'Khách'}</option>`; });
+      } catch(e) {}
+
+      container.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:24px;">
+           <div>
+              <h1 style="font-size:24px; font-weight:600; margin-bottom:4px;">${q ? 'Sửa Báo giá' : 'Tạo Báo giá mới'}</h1>
+              <div style="color:var(--text-secondary); font-size:14px; font-family:monospace;">${currentQuoteId}</div>
+           </div>
+           <button type="button" class="btn btn-ghost" onclick="loadView('quotation')"><i data-lucide="arrow-left"></i> Quay lại</button>
+        </div>
+
+        <div class="card" style="padding:24px; margin-bottom:24px;">
+          <div style="padding:16px; background:rgba(99,102,241,0.05); border:1px solid rgba(99,102,241,0.2); border-radius:12px; margin-bottom:24px;">
+            <div style="font-size:12px; font-weight:700; color:#818cf8; margin-bottom:8px; text-transform:uppercase; display:flex; align-items:center; gap:6px;"><i data-lucide="zap" style="width:14px;height:14px;"></i> IMPORT NHANH TỪ ĐƠN HÀNG</div>
+            <select class="form-group" style="margin:0; width:100%; border:none; background:rgba(0,0,0,0.3); color:white; padding:10px 14px; border-radius:8px; outline:none; font-family:inherit;" onchange="importOrderData(this.value)">
+              ${ordersHtml}
+            </select>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-bottom:24px;">
+            <div class="form-group" style="margin:0"><label>Khách Hàng / Đơn vị *</label><input type="text" id="q_customer" value="${q?.customer || ''}" required></div>
+            <div class="form-group" style="margin:0"><label>Người nhận</label><input type="text" id="q_receiver" value="${q?.receiver || ''}"></div>
+            <div class="form-group" style="margin:0"><label>Số điện thoại</label><input type="text" id="q_phone" value="${q?.phone || ''}"></div>
+            <div class="form-group" style="margin:0"><label>Ngày báo giá</label><input type="date" id="q_date" value="${q?.date || new Date().toISOString().split('T')[0]}"></div>
+          </div>
+          <div class="form-group"><label>Địa chỉ</label><input type="text" id="q_address" value="${q?.address || ''}"></div>
+
+          <div style="font-size:16px; font-weight:600; margin:32px 0 16px; padding-bottom:12px; border-bottom:1px solid var(--border);">Sản phẩm & Dịch vụ</div>
+          
+          <div style="overflow-x:auto;">
+            <table style="width:100%; min-width:800px; margin-bottom:16px;" id="items-table">
+              <thead><tr>
+                <th style="width:25%">Sản phẩm</th>
+                <th style="width:25%">Nội dung</th>
+                <th style="width:10%">ĐVT</th>
+                <th style="width:10%">S.Lượng</th>
+                <th style="width:15%">Đơn giá (đ)</th>
+                <th style="width:15%; text-align:right">Thành tiền</th>
+                <th style="width:5%"></th>
+              </tr></thead>
+              <tbody id="items-body"></tbody>
+            </table>
+          </div>
+          
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px; padding:16px; background:rgba(0,0,0,0.2); border-radius:12px; border:1px solid var(--border);">
+            <button type="button" class="btn btn-ghost" style="border-style:dashed;" onclick="addBlankRow()"><i data-lucide="plus"></i> Thêm dòng</button>
+            <div style="font-size:20px; font-weight:700;">Tổng cộng: <span id="q_total_display" style="color:var(--success)">0</span> đ</div>
+          </div>
+
+          <div class="form-group" style="margin-top:24px;">
+            <label>Điều khoản thương mại</label>
+            <textarea id="q_terms" rows="4" style="background:rgba(0,0,0,0.2)">${q?.terms || '1. Thời hạn báo giá: 14 ngày.\n2. Giá chưa bao gồm VAT.\n3. Tạm ứng 50% ngay sau khi xác nhận.'}</textarea>
+          </div>
+
+          <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:32px; padding-top:24px; border-top:1px solid var(--border);">
+            <button type="button" class="btn btn-ghost" onclick="previewQuote()"><i data-lucide="printer"></i> Xem & In A4</button>
+            <button type="button" class="btn btn-primary" onclick="saveQuote()"><i data-lucide="save"></i> Lưu Báo giá</button>
+          </div>
+        </div>
+      `;
+
+      if(q && q.items) q.items.forEach(i => addBlankRow(i.name, i.content, i.unit, i.qty, i.price));
+      else addBlankRow();
+      calcTotal();
+    }
+
+    window.importOrderData = (orderId) => {
+      if(!orderId) return;
+      const order = window.tempOrders.find(o => o.id == orderId);
+      if(!order) return;
+      document.getElementById('q_customer').value = order.customer?.name || '';
+      if(document.getElementById('q_phone') && order.customer?.phone) document.getElementById('q_phone').value = order.customer.phone;
+      if(document.getElementById('q_address') && order.customer?.address) document.getElementById('q_address').value = order.customer.address;
+      
+      const tbody = document.getElementById('items-body'); tbody.innerHTML = '';
+      if(order.details?.length > 0) order.details.forEach(d => addBlankRow(d.product?.name||'', d.product?.product_code||'', 'Cái', d.quantity, parseFloat(d.price)));
+      else addBlankRow();
+      calcTotal(); showToast('Đã điền dữ liệu từ đơn hàng!');
+    };
+
+    window.addBlankRow = (name='', content='', unit='Cái', qty=1, price=0) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="padding:8px"><input type="text" class="i-name form-group" style="margin:0; width:100%; padding:8px; border-radius:6px; background:rgba(255,255,255,0.03); border:1px solid var(--border); color:white; outline:none;" value="${name}"></td>
+        <td style="padding:8px"><input type="text" class="i-content" style="margin:0; width:100%; padding:8px; border-radius:6px; background:rgba(255,255,255,0.03); border:1px solid var(--border); color:white; outline:none;" value="${content}"></td>
+        <td style="padding:8px"><input type="text" class="i-unit" style="margin:0; width:100%; padding:8px; border-radius:6px; background:rgba(255,255,255,0.03); border:1px solid var(--border); color:white; outline:none; text-align:center;" value="${unit}"></td>
+        <td style="padding:8px"><input type="number" class="i-qty" style="margin:0; width:100%; padding:8px; border-radius:6px; background:rgba(255,255,255,0.03); border:1px solid var(--border); color:white; outline:none; text-align:center;" min="1" value="${qty}" oninput="calcRow(this)"></td>
+        <td style="padding:8px"><input type="text" class="i-price" style="margin:0; width:100%; padding:8px; border-radius:6px; background:rgba(255,255,255,0.03); border:1px solid var(--border); color:white; outline:none; text-align:right;" value="${formatMoney(price)}" oninput="formatInputMoney(this); calcRow(this)"></td>
+        <td style="padding:8px"><input type="text" class="i-total" style="margin:0; width:100%; padding:8px; border:none; background:transparent; color:var(--success); font-weight:600; text-align:right; outline:none;" value="${formatMoney(qty*price)}" readonly></td>
+        <td style="padding:8px; text-align:center"><button type="button" class="btn-icon-header" style="color:var(--danger); margin:0 auto;" onclick="this.closest('tr').remove(); calcTotal()"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></button></td>
+      `;
+      document.getElementById('items-body').appendChild(tr);
+      lucide.createIcons();
+    };
+
+    window.formatInputMoney = (input) => { let v = input.value.replace(/[^0-9]/g, ''); input.value = v ? parseFloat(v).toLocaleString('vi-VN') : ''; };
+    window.calcRow = (el) => { const tr = el.closest('tr'); const qty = parseFloat(tr.querySelector('.i-qty').value)||0; const price = parseMoney(tr.querySelector('.i-price').value); tr.querySelector('.i-total').value = formatMoney(qty*price); calcTotal(); };
+    window.calcTotal = () => { let sum = 0; document.querySelectorAll('.i-total').forEach(i => sum += parseMoney(i.value)); document.getElementById('q_total_display').textContent = formatMoney(sum); return sum; };
+
+    window.saveQuote = () => {
+      const customer = document.getElementById('q_customer').value.trim();
+      if(!customer) return showToast('Vui lòng nhập Khách hàng', 'error');
+      const items = [];
+      document.querySelectorAll('#items-body tr').forEach(tr => {
+        const name = tr.querySelector('.i-name').value.trim();
+        if(name) items.push({ name, content: tr.querySelector('.i-content').value.trim(), unit: tr.querySelector('.i-unit').value.trim(), qty: parseFloat(tr.querySelector('.i-qty').value)||0, price: parseMoney(tr.querySelector('.i-price').value), total: parseMoney(tr.querySelector('.i-total').value) });
+      });
+      if(!items.length) return showToast('Cần ít nhất 1 sản phẩm', 'error');
+
+      const quoteData = { id: window.currentQuoteIdTemp, customer, receiver: document.getElementById('q_receiver').value.trim(), address: document.getElementById('q_address').value.trim(), phone: document.getElementById('q_phone').value.trim(), date: document.getElementById('q_date').value, terms: document.getElementById('q_terms').value, items, totalAmount: calcTotal() };
+      const idx = quotes.findIndex(q => q.id === window.currentQuoteIdTemp);
+      if(idx >= 0) quotes[idx] = quoteData; else quotes.unshift(quoteData);
+
+      localStorage.setItem('crm_quotes', JSON.stringify(quotes));
+      showToast('Đã lưu Báo giá!'); loadView('quotation');
+    };
+
+    window.previewQuote = () => { alert('Chức năng In A4 đã được ẩn gọn để demo giao diện Linear. Logic vẫn giữ nguyên!'); };
+
+    // Dashboard Init
+    async function renderDashboard(c) {
+      const sum = await fetchAPI('/revenue/summary');
+      c.innerHTML = `
+        <div style="margin-bottom:24px;">
+           <h1 style="font-size:24px; font-weight:600; margin-bottom:4px;">Tổng quan hệ thống</h1>
+           <div style="color:var(--text-secondary); font-size:14px;">Theo dõi chỉ số kinh doanh</div>
+        </div>
+        <div class="stats-grid">
+          <div class="card stat-card">
+            <div class="stat-header">
+               <div class="stat-icon"><i data-lucide="dollar-sign"></i></div>
+               <span class="badge badge-completed"><i data-lucide="trending-up"></i> +12.5%</span>
+            </div>
+            <div style="margin-top:16px;">
+               <div class="stat-title">Tổng doanh thu</div>
+               <div class="stat-value">${formatMoney(sum.total_revenue)} đ</div>
+            </div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-header">
+               <div class="stat-icon" style="background:rgba(16,185,129,0.1); color:#10b981"><i data-lucide="check-circle-2"></i></div>
+            </div>
+            <div style="margin-top:16px;">
+               <div class="stat-title">Đơn hoàn thành</div>
+               <div class="stat-value">${sum.completed_orders}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ==========================================
+    // PROFILE MODULE
+    // ==========================================
+    async function renderProfile(container) {
+      const profileData = await fetchAPI('/users/profile');
+      
+      container.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:24px;">
+           <div>
+              <h1 style="font-size:24px; font-weight:600; margin-bottom:4px;">Hồ sơ cá nhân</h1>
+              <div style="color:var(--text-secondary); font-size:14px;">Quản lý thông tin tài khoản của bạn</div>
+           </div>
+           <button class="btn btn-ghost" style="color:var(--danger); border-color:rgba(239,68,68,0.2)" onclick="logout()">
+             <i data-lucide="log-out"></i> Đăng xuất
+           </button>
+        </div>
+        
+        <div class="card" style="max-width: 600px; padding: 32px;">
+          <form onsubmit="saveProfile(event)">
+            <div style="display:flex; gap:24px; margin-bottom:32px; align-items:center;">
+              <div style="position:relative; width:80px; height:80px; border-radius:50%; background:var(--accent); overflow:hidden; flex-shrink:0; cursor:pointer;" onclick="document.getElementById('p_avatar_file').click()">
+                <img id="p_preview_avatar" src="${profileData.avatar || ''}" style="width:100%; height:100%; object-fit:cover; display:${profileData.avatar?'block':'none'}">
+                <div id="p_preview_letter" style="width:100%; height:100%; display:${profileData.avatar?'none':'flex'}; align-items:center; justify-content:center; color:white; font-size:32px; font-weight:bold;">${profileData.name.charAt(0).toUpperCase()}</div>
+                <div style="position:absolute; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0">
+                   <i data-lucide="camera" style="color:white; width:24px; height:24px;"></i>
+                </div>
+              </div>
+              <div style="flex:1;">
+                <div class="form-group" style="margin-bottom:0;">
+                  <label>Tải ảnh lên hoặc nhập URL</label>
+                  <div style="display:flex; gap:12px;">
+                    <input type="text" id="p_avatar_input" value="${profileData.avatar || ''}" placeholder="https://..." oninput="previewAvatar(this.value, '${profileData.name}')" style="flex:1">
+                    <input type="file" id="p_avatar_file" accept="image/*" style="display:none" onchange="handleFileUpload(event, '${profileData.name}')">
+                    <button type="button" class="btn btn-ghost" onclick="document.getElementById('p_avatar_file').click()"><i data-lucide="upload"></i> Tải ảnh</button>
+                    <button type="button" class="btn btn-ghost" style="color:var(--danger); border-color:rgba(239,68,68,0.2)" onclick="previewAvatar('', '${profileData.name}'); document.getElementById('p_avatar_input').value='';"><i data-lucide="trash-2"></i> Xóa</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>Họ và tên *</label>
+              <input type="text" id="p_name" value="${profileData.name}" required>
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" value="${profileData.email}" disabled style="opacity:0.6; cursor:not-allowed;">
+            </div>
+            <div class="form-group">
+              <label>Số điện thoại</label>
+              <input type="text" id="p_phone" value="${profileData.phone || ''}">
+            </div>
+            <div class="form-group">
+              <label>Địa chỉ</label>
+              <input type="text" id="p_address" value="${profileData.address || ''}">
+            </div>
+            
+            <div style="margin-top:32px; display:flex; justify-content:flex-end; gap:12px; border-top:1px solid var(--border); padding-top:24px;">
+               <button type="button" class="btn btn-ghost" onclick="loadView('dashboard')">Hủy bỏ</button>
+               <button type="submit" class="btn btn-primary" id="btn-save-profile"><i data-lucide="save"></i> Lưu cập nhật</button>
+            </div>
+          </form>
+        </div>
+      `;
+    }
+
+    window.previewAvatar = (url, name) => {
+      const img = document.getElementById('p_preview_avatar');
+      const letter = document.getElementById('p_preview_letter');
+      if(url) {
+        img.src = url; img.style.display = 'block'; letter.style.display = 'none';
+      } else {
+        img.style.display = 'none'; letter.style.display = 'flex'; letter.textContent = name.charAt(0).toUpperCase();
+      }
+    };
+
+    window.handleFileUpload = (e, name) => {
+      const file = e.target.files[0];
+      if(!file) return;
+      
+      // Simple validation for size (max 2MB)
+      if(file.size > 2 * 1024 * 1024) return showToast('Ảnh quá lớn, vui lòng chọn ảnh < 2MB', 'error');
+      
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const base64 = ev.target.result;
+        document.getElementById('p_avatar_input').value = base64;
+        previewAvatar(base64, name);
+      };
+      reader.readAsDataURL(file);
+    };
+
+    window.saveProfile = async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btn-save-profile');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<i data-lucide="loader-2" class="spin"></i> Đang lưu...';
+      btn.disabled = true;
+      lucide.createIcons();
+      
+      try {
+        const payload = {
+          name: document.getElementById('p_name').value,
+          phone: document.getElementById('p_phone').value,
+          address: document.getElementById('p_address').value,
+          avatar: document.getElementById('p_avatar_input').value
+        };
+        
+        const updatedUser = await fetchAPI('/users/profile', { method: 'PUT', body: JSON.stringify(payload) });
+        
+        const sessionUser = JSON.parse(localStorage.getItem('crm_user'));
+        const newUser = { ...sessionUser, ...updatedUser };
+        localStorage.setItem('crm_user', JSON.stringify(newUser));
+        
+        document.getElementById('header-user-name').textContent = newUser.name;
+        const ava = document.getElementById('header-avatar');
+        if(newUser.avatar) {
+          ava.innerHTML = `<img src="${newUser.avatar}">`;
+        } else {
+          ava.innerHTML = newUser.name.charAt(0).toUpperCase();
+        }
+        
+        showToast('Cập nhật Profile thành công!');
+      } catch (err) {
+        showToast(err.message, 'error');
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        lucide.createIcons();
+      }
+    };
+
+    loadView('dashboard');
+  </script>
+</body>
+</html>

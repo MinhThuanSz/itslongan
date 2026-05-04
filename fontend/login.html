@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng Nhập | ITS Long An CRM</title>
+  <meta name="description" content="Đăng nhập vào hệ thống CRM ITS Long An.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+  <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+  <link rel="stylesheet" href="auth.css">
+</head>
+
+<body class="auth-body">
+
+  <!-- Ambient background blobs -->
+  <div class="auth-bg">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <div class="auth-wrapper">
+
+    <!-- ── LEFT PANEL ── -->
+    <div class="auth-left">
+      <a href="index.html" class="auth-logo">
+        <img src="/logo.png" alt="ITS Long An Logo">
+      </a>
+
+      <div class="auth-left-content">
+        <h2>Nền tảng quản lý<br><span class="gradient-text">doanh nghiệp thông minh</span></h2>
+        <p>Tối ưu vận hành, tăng trưởng bền vững với hệ sinh thái CRM tích hợp toàn diện của ITS Long An.</p>
+        <div class="auth-features">
+          <div class="feature-item">
+            <div class="feature-icon"><ion-icon name="shield-checkmark-outline"></ion-icon></div>
+            <span>Bảo mật chuẩn doanh nghiệp</span>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon"><ion-icon name="analytics-outline"></ion-icon></div>
+            <span>Phân tích dữ liệu real-time</span>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon"><ion-icon name="people-outline"></ion-icon></div>
+            <span>Quản lý khách hàng tập trung</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="auth-left-stats">
+        <div class="stat"><div class="stat-number">500+</div><div class="stat-text">Dự án</div></div>
+        <div class="stat-divider"></div>
+        <div class="stat"><div class="stat-number">200+</div><div class="stat-text">Khách hàng</div></div>
+        <div class="stat-divider"></div>
+        <div class="stat"><div class="stat-number">10+</div><div class="stat-text">Năm kinh nghiệm</div></div>
+      </div>
+    </div>
+
+    <!-- ── RIGHT PANEL — GLASS CARD ── -->
+    <div class="auth-right">
+      <div class="auth-card">
+        <div class="auth-card-header">
+          <h1>Chào mừng trở lại 👋</h1>
+          <p>Đăng nhập để tiếp tục quản lý hệ thống</p>
+        </div>
+
+        <!-- Alert box -->
+        <div class="alert alert-error" id="loginAlert" style="display:none;">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          <span id="loginAlertMsg"></span>
+        </div>
+
+        <!-- Social Login Buttons -->
+        <div class="social-btns">
+          <a href="http://localhost:5000/auth/google" class="social-btn" id="btnGoogle">
+            <svg width="20" height="20" viewBox="0 0 48 48">
+              <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v8.51h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.14z"/>
+              <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+              <path fill="#FBBC05" d="M10.53 28.59c-.5-1.45-.78-2.99-.78-4.59s.27-3.14.78-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+              <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+            </svg>
+            <span>Google</span>
+          </a>
+          <a href="http://localhost:5000/auth/facebook" class="social-btn" id="btnFacebook">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#1877F2">
+              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+            </svg>
+            <span>Facebook</span>
+          </a>
+        </div>
+
+        <div class="divider"><span>hoặc đăng nhập bằng email</span></div>
+
+        <!-- Email / Password Form -->
+        <form id="loginForm" novalidate>
+          <div class="form-group">
+            <label for="loginEmail">Email</label>
+            <div class="input-wrapper">
+              <ion-icon name="mail-outline" class="input-icon"></ion-icon>
+              <input type="email" id="loginEmail" class="form-input"
+                     placeholder="ten@congty.com" autocomplete="email" required>
+            </div>
+            <div class="field-error" id="emailError"></div>
+          </div>
+
+          <div class="form-group">
+            <div class="label-row">
+              <label for="loginPassword">Mật khẩu</label>
+              <a href="#" class="forgot-link">Quên mật khẩu?</a>
+            </div>
+            <div class="input-wrapper">
+              <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
+              <input type="password" id="loginPassword" class="form-input"
+                     placeholder="••••••••" autocomplete="current-password" required>
+              <button type="button" class="toggle-pw" id="togglePw" tabindex="-1">
+                <ion-icon name="eye-outline" id="pwEyeIcon"></ion-icon>
+              </button>
+            </div>
+            <div class="field-error" id="passwordError"></div>
+          </div>
+
+          <div class="form-check">
+            <label class="checkbox-label">
+              <input type="checkbox" id="rememberMe">
+              <span class="checkmark"></span>
+              <span>Ghi nhớ đăng nhập</span>
+            </label>
+          </div>
+
+          <button type="submit" class="btn-auth btn-submit" id="loginSubmit">
+            <span class="btn-text">
+              <ion-icon name="log-in-outline"></ion-icon>
+              Đăng nhập
+            </span>
+            <span class="btn-loader" style="display:none;">
+              <span class="spinner"></span> Đang xử lý...
+            </span>
+          </button>
+        </form>
+
+        <p class="auth-redirect">
+          Chưa có tài khoản? <a href="register.html">Đăng ký ngay</a>
+        </p>
+      </div>
+    </div>
+
+  </div><!-- /.auth-wrapper -->
+
+  <script src="auth.js"></script>
+</body>
+</html>

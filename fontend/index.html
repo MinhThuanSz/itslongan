@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ITS Long An | Công Nghệ Cho Tương Lai</title>
+  <meta name="description"
+    content="Giải pháp công nghệ thông tin chuyên nghiệp tại Long An. Dịch vụ IT, Mạng, An ninh giám sát.">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- AOS Animation -->
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+  <!-- Icons -->
+  <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</head>
+
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="container nav">
+      <a href="#" class="logo">
+        <img src="/logo.png" alt="ITS Long An Logo">
+      </a>
+
+      <nav class="nav-links">
+        <a href="#home" class="nav-link">Trang chủ</a>
+        <a href="#about" class="nav-link">Giới thiệu</a>
+        <a href="#services" class="nav-link">Dịch vụ</a>
+        <a href="#contact" class="nav-link">Liên hệ</a>
+      </nav>
+
+      <div class="header-btns" id="header-auth-container">
+        <!-- Rendered dynamically by JS based on login state -->
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section id="home" class="hero" style="background: radial-gradient(circle at 50% 50%, #f8fafc 0%, #ffffff 100%);">
+    <div class="container">
+      <!-- <div class="hero-tag" data-aos="fade-down">Leading Technology in 2026</div> -->
+      <h1 data-aos="fade-up" style="font-family: 'Poppins', sans-serif;">Nâng Tầm Doanh Nghiệp<br>Với <span>Giải Pháp
+          Số</span></h1>
+      <p data-aos="fade-up" data-aos-delay="100" style="font-family: 'Inter', sans-serif;">
+        Chúng tôi đồng hành cùng doanh nghiệp xây dựng hạ tầng CNTT vững chắc, an toàn và hiệu quả tối ưu.
+      </p>
+      <div class="hero-btns" data-aos="fade-up" data-aos-delay="200">
+        <a href="#services" class="btn btn-blue" style="padding: 1rem 2.5rem; border-radius: 100px;">Khám phá ngay</a>
+        <a href="#contact" class="btn" style="padding: 1rem 2.5rem; border-radius: 100px;">Liên hệ tư vấn</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- About Section (2 Columns) -->
+  <section id="about" style="background: #fff;">
+    <div class="container">
+      <div class="about-grid">
+        <div class="about-image" data-aos="fade-right">
+          <div class="slideshow-container">
+            <img src="/about-1.jpg" alt="Văn phòng ITS 1" class="slide active">
+            <img src="/about-2.png" alt="Đội ngũ ITS" class="slide">
+            <img src="/about-3.jpg" alt="Khai trương ITS" class="slide">
+          </div>
+        </div>
+        <div class="about-content" data-aos="fade-left">
+          <span class="section-label" style="text-align: left;">Về chúng tôi</span>
+          <h2>Đối tác công nghệ tin cậy của bạn</h2>
+          <p>ITS Long An tự hào là đơn vị tiên phong cung cấp các giải pháp công nghệ toàn diện, từ hạ tầng mạng đến các
+            hệ thống an ninh thông minh.</p>
+
+          <div class="checklist">
+            <div class="checklist-item">
+              <ion-icon name="checkmark-circle"></ion-icon>
+              <span>Đội ngũ kỹ thuật chuyên môn cao</span>
+            </div>
+            <div class="checklist-item">
+              <ion-icon name="checkmark-circle"></ion-icon>
+              <span>Giải pháp tối ưu theo chi phí</span>
+            </div>
+            <div class="checklist-item">
+              <ion-icon name="checkmark-circle"></ion-icon>
+              <span>Hỗ trợ kỹ thuật 24/7 tận tâm</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services Section -->
+  <section id="services" class="services">
+    <div class="container">
+      <span class="section-label" data-aos="fade-up">Dịch vụ cốt lõi</span>
+      <h2 class="section-title" data-aos="fade-up">Giải pháp toàn diện</h2>
+
+      <div class="services-grid">
+        <div class="card" data-aos="fade-up">
+          <div class="card-icon"><ion-icon name="hardware-chip-outline"></ion-icon></div>
+          <h3>Dịch Vụ IT</h3>
+          <p>Quản trị hệ thống, bảo trì định kỳ và hỗ trợ người dùng cuối chuyên nghiệp.</p>
+        </div>
+        <div class="card" data-aos="fade-up" data-aos-delay="100">
+          <div class="card-icon"><ion-icon name="globe-outline"></ion-icon></div>
+          <h3>Dịch Vụ Mạng</h3>
+          <p>Thi công mạng nội bộ, WiFi Marketing và bảo mật dữ liệu doanh nghiệp.</p>
+        </div>
+        <div class="card" data-aos="fade-up" data-aos-delay="200">
+          <div class="card-icon"><ion-icon name="eye-outline"></ion-icon></div>
+          <h3>An Ninh Giám Sát</h3>
+          <p>Hệ thống camera AI nhận diện khuôn mặt và kiểm soát an ninh đa tầng.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Section (Distinct BG) -->
+  <section class="stats" style="background: var(--secondary); color: white; border: none;">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat-item" data-aos="zoom-in">
+          <div class="stat-num" style="color: var(--accent);">10+</div>
+          <div class="stat-label" style="color: #94a3b8;">Năm kinh nghiệm</div>
+        </div>
+        <div class="stat-item" data-aos="zoom-in" data-aos-delay="100">
+          <div class="stat-num" style="color: var(--accent);">500+</div>
+          <div class="stat-label" style="color: #94a3b8;">Dự án thực hiện</div>
+        </div>
+        <div class="stat-item" data-aos="zoom-in" data-aos-delay="200">
+          <div class="stat-num" style="color: var(--accent);">200+</div>
+          <div class="stat-label" style="color: #94a3b8;">Khách hàng doanh nghiệp</div>
+        </div>
+        <div class="stat-item" data-aos="zoom-in" data-aos-delay="300">
+          <div class="stat-num" style="color: var(--accent);">99%</div>
+          <div class="stat-label" style="color: #94a3b8;">Hài lòng tuyệt đối</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Section -->
+  <section id="contact" style="background: var(--bg-soft);">
+    <div class="container">
+      <span class="section-label" data-aos="fade-up">Liên hệ</span>
+      <h2 class="section-title" data-aos="fade-up">Bắt đầu dự án của bạn</h2>
+
+      <div class="contact-container" data-aos="fade-up">
+        <form>
+          <div class="grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <div class="form-group">
+              <label>Họ và tên</label>
+              <input type="text" class="form-control" placeholder="Họ và tên">
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" class="form-control" placeholder="Email">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Dịch vụ quan tâm</label>
+            <select class="form-control">
+              <option>Dịch vụ IT</option>
+              <option>Hệ thống mạng</option>
+              <option>An ninh giám sát</option>
+              <option>Khác</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Lời nhắn</label>
+            <textarea class="form-control" rows="4" placeholder="Chúng tôi có thể giúp gì cho bạn?"></textarea>
+          </div>
+          <button type="submit" class="btn btn-blue" style="width: 100%; padding: 1.2rem; margin-top: 1rem;">Gửi yêu
+            cầu</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- Partners -->
+  <section id="partners" class="partners">
+    <div class="container">
+      <div class="partners-track">
+        <!-- Group 1 -->
+        <img src="/kizuna.jpg" alt="Kizuna" class="partner-logo">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/0/08/Cisco_logo_blue_2016.svg" alt="Cisco"
+          class="partner-logo">
+        <img src="/fortinet.png" alt="Fortinet" class="partner-logo">
+        <img src="/panasonic.png" alt="Panasonic" class="partner-logo">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/a/ad/HP_logo_2012.svg" alt="HP" class="partner-logo">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/1/18/Dell_logo_2016.svg" alt="Dell"
+          class="partner-logo">
+        <!-- Group 2 (Duplicate for seamless loop) -->
+        <img src="/kizuna.jpg" alt="Kizuna" class="partner-logo">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/0/08/Cisco_logo_blue_2016.svg" alt="Cisco"
+          class="partner-logo">
+        <img src="/fortinet.png" alt="Fortinet" class="partner-logo">
+        <img src="/panasonic.png" alt="Panasonic" class="partner-logo">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/a/ad/HP_logo_2012.svg" alt="HP" class="partner-logo">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/1/18/Dell_logo_2016.svg" alt="Dell"
+          class="partner-logo">
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <a href="#" class="logo" style="margin-bottom: 2rem;">
+            <img src="/logo.png" alt="ITS Long An Logo" style="filter: brightness(0) invert(1);">
+          </a>
+          <p style="color: #94a3b8; font-size: 0.95rem; line-height: 1.6;">
+            15/8 Trương Văn Bang, Khu Phố 3, Xã Cần Giuộc, Tỉnh Tây Ninh.
+          </p>
+          <div class="footer-form" style="margin-top: 2rem;">
+            <p style="color: white; font-size: 0.9rem; font-weight: 600; margin-bottom: 1rem;">Đăng ký nhận tin</p>
+            <div class="newsletter-group">
+              <input type="email" placeholder="Email của bạn">
+              <button type="button">Gửi</button>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="footer-title">Khám phá</h4>
+          <ul class="footer-links" style="margin-top: 1.5rem;">
+            <li><a href="#">Về chúng tôi</a></li>
+            <li><a href="#">Dịch vụ IT</a></li>
+            <li><a href="#">Dự án</a></li>
+            <li><a href="#">Blog công nghệ</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-title">Hỗ trợ</h4>
+          <ul class="footer-links" style="margin-top: 1.5rem;">
+            <li><a href="#">Trung tâm trợ giúp</a></li>
+            <li><a href="#">Chính sách bảo mật</a></li>
+            <li><a href="#">Điều khoản sử dụng</a></li>
+            <li><a href="#">Liên hệ</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-title">Liên hệ</h4>
+          <ul class="footer-links" style="margin-top: 1.5rem;">
+            <li><a href="tel:02723731369">0272 373 1369</a></li>
+            <li><a href="tel:0888300345">0888 300 345 (Zalo Mr. Thảo)</a></li>
+            <li><a href="tel:0888640119">0888 640 119 (Ms. Thiện)</a></li>
+            <li><a href="mailto:itslongan@gmail.com">itslongan@gmail.com</a></li>
+          </ul>
+          <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+            <a href="https://www.facebook.com/profile.php?id=61551587341677" target="_blank" class="social-link"
+              style="font-size: 1.5rem; color: #94a3b8;"><ion-icon name="logo-facebook"></ion-icon></a>
+            <a href="#" class="social-link" style="font-size: 1.5rem; color: #94a3b8;"><ion-icon
+                name="logo-linkedin"></ion-icon></a>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2026 ITS Long An Co., Ltd. All rights reserved.</p>
+        <p>Powered by Modern Tech</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Mobile Sidebar Menu -->
+  <div class="mobile-sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <img src="/logo.png" alt="ITS Long An Logo">
+      </div>
+      <button class="close-sidebar" id="closeSidebar">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    </div>
+    <ul class="sidebar-menu">
+      <li><a href="#" class="sidebar-link"><span>Trang chủ</span> <ion-icon
+            name="chevron-forward-outline"></ion-icon></a></li>
+      <li><a href="#about" class="sidebar-link"><span>Giới thiệu</span> <ion-icon
+            name="chevron-forward-outline"></ion-icon></a></li>
+      <li><a href="#services" class="sidebar-link"><span>Dịch vụ</span> <ion-icon
+            name="chevron-forward-outline"></ion-icon></a></li>
+      <li><a href="#features" class="sidebar-link"><span>Giải pháp</span> <ion-icon
+            name="chevron-forward-outline"></ion-icon></a></li>
+      <li><a href="#" class="sidebar-link"><span>Tin tức - Sự kiện</span> <ion-icon
+            name="chevron-forward-outline"></ion-icon></a></li>
+      <li><a href="#" class="sidebar-link"><span>Dự án</span> <ion-icon name="chevron-forward-outline"></ion-icon></a>
+      </li>
+      <li><a href="#" class="sidebar-link"><span>Đối tác</span> <ion-icon name="chevron-forward-outline"></ion-icon></a>
+      </li>
+      <li><a href="#contact" class="sidebar-link"><span>Liên hệ</span> <ion-icon
+            name="chevron-forward-outline"></ion-icon></a></li>
+    </ul>
+  </div>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- Zalo Floating Button -->
+  <a href="https://zalo.me/0888300345" target="_blank" class="zalo-float" title="Chat với chúng tôi qua Zalo">
+    <div class="zalo-icon-container">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg" alt="Zalo">
+    </div>
+    <span class="zalo-text">Liên hệ tư vấn</span>
+  </a>
+
+  <!-- Profile Modal -->
+  <div id="profile-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">Hồ sơ cá nhân</div>
+        <button type="button" class="modal-close" onclick="closeProfileModal()"><ion-icon name="close-outline"></ion-icon></button>
+      </div>
+      <form onsubmit="saveHomeProfile(event)">
+        <div class="modal-body">
+          <div style="display:flex; gap:24px; margin-bottom:24px; align-items:center;">
+            <div style="position:relative; width:72px; height:72px; border-radius:50%; background:linear-gradient(135deg, var(--primary), var(--accent)); overflow:hidden; flex-shrink:0; cursor:pointer;" onclick="document.getElementById('m_avatar_file').click()">
+              <img id="m_preview_avatar" src="" style="width:100%; height:100%; object-fit:cover; display:none;">
+              <div id="m_preview_letter" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:white; font-size:28px; font-weight:bold;">U</div>
+              <div style="position:absolute; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0">
+                 <ion-icon name="camera-outline" style="color:white; font-size:1.5rem;"></ion-icon>
+              </div>
+            </div>
+            <div style="flex:1;">
+              <div class="form-group" style="margin-bottom:0;">
+                <label>Avatar (URL hoặc tải lên)</label>
+                <div style="display:flex; gap:8px;">
+                  <input type="text" id="m_avatar_input" class="form-control" placeholder="https://..." oninput="previewHomeAvatar(this.value)">
+                  <input type="file" id="m_avatar_file" accept="image/*" style="display:none" onchange="handleHomeFileUpload(event)">
+                  <button type="button" class="btn" style="background:rgba(255,255,255,0.05); color:white; border-color:rgba(255,255,255,0.1); padding:0.6rem 1rem;" onclick="document.getElementById('m_avatar_file').click()"><ion-icon name="cloud-upload-outline"></ion-icon></button>
+                  <button type="button" class="btn" style="background:rgba(239,68,68,0.1); color:#ef4444; border-color:transparent; padding:0.6rem 1rem;" onclick="previewHomeAvatar(''); document.getElementById('m_avatar_input').value='';"><ion-icon name="trash-outline"></ion-icon></button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Họ và tên *</label>
+            <input type="text" id="m_name" class="form-control" required oninput="markProfileChange()">
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="m_email" class="form-control" disabled style="opacity:0.6; cursor:not-allowed;">
+          </div>
+          <div class="form-group">
+            <label>Số điện thoại</label>
+            <input type="text" id="m_phone" class="form-control" oninput="markProfileChange()">
+          </div>
+          <div class="form-group">
+            <label>Địa chỉ</label>
+            <input type="text" id="m_address" class="form-control" oninput="markProfileChange()">
+          </div>
+        </div>
+        <div class="modal-footer">
+           <button type="button" class="btn" style="background:transparent; color:white; border-color:rgba(255,255,255,0.2);" onclick="closeProfileModal()">Hủy bỏ</button>
+           <button type="submit" class="btn btn-primary" id="btn-save-home-profile" style="background:white; border-color:white; color:var(--primary); font-weight: 600;"><ion-icon name="save-outline"></ion-icon>&nbsp; Lưu cập nhật</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="home-toast" class="toast-msg"></div>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script src="main.js"></script>
+
+  <script>
+    // --- Auth & Profile Logic for Homepage ---
+    document.addEventListener('DOMContentLoaded', () => {
+      renderAuthHeader();
+    });
+
+    function renderAuthHeader() {
+      const authContainer = document.getElementById('header-auth-container');
+      const token = localStorage.getItem('crm_token');
+      const user = JSON.parse(localStorage.getItem('crm_user') || 'null');
+
+      if (token && user) {
+        const roleMap = { 'CUSTOMER': 'Khách hàng', 'ADMIN': 'Quản trị viên', 'MANAGER': 'Quản lý' };
+        const displayRole = roleMap[user.role] || user.role.toLowerCase();
+        
+        // Logged in UI
+        authContainer.innerHTML = `
+          <div class="header-user" onclick="toggleUserDropdown(event)">
+             <div id="home-avatar" class="header-avatar" title="${user.name}">
+               ${user.avatar ? `<img src="${user.avatar}">` : user.name.charAt(0).toUpperCase()}
+             </div>
+             <div class="header-user-info" style="display: ${window.innerWidth < 768 ? 'none' : 'flex'}">
+               <div id="home-user-name" class="header-user-name">${user.name}</div>
+               <div id="home-user-role" class="header-user-role">${displayRole}</div>
+             </div>
+             <div class="dropdown-menu" id="home-user-dropdown">
+               <div style="padding: 10px 12px; margin-bottom: 6px; background: rgba(0,0,0,0.03); border-radius: 8px;">
+                 <div style="font-size: 0.8rem; color: var(--text-muted);">Đăng nhập với</div>
+                 <div style="font-weight: 600; font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${user.email}</div>
+               </div>
+               ${user.role !== 'CUSTOMER' ? `<button type="button" class="dropdown-item" onclick="window.location.href='dashboard.html'"><ion-icon name="grid-outline"></ion-icon> Dashboard CRM</button>` : ''}
+               <button type="button" class="dropdown-item" onclick="openProfileModal()"><ion-icon name="person-outline"></ion-icon> Thông tin cá nhân</button>
+               <button type="button" class="dropdown-item"><ion-icon name="settings-outline"></ion-icon> Cài đặt</button>
+               <div class="dropdown-divider"></div>
+               <button type="button" class="dropdown-item danger" onclick="logout()"><ion-icon name="log-out-outline"></ion-icon> Đăng xuất</button>
+             </div>
+          </div>
+          <button class="mobile-menu-btn" id="menuToggle" onclick="document.querySelector('.mobile-sidebar').classList.add('active'); document.querySelector('.sidebar-overlay').classList.add('active'); document.body.classList.add('body-locked');">
+            <ion-icon name="menu-outline"></ion-icon>
+          </button>
+        `;
+      } else {
+        // Not logged in UI
+        authContainer.innerHTML = `
+          <a href="login.html" class="btn" style="border: 1px solid var(--border); background: transparent; color: var(--text-main); margin-right: 0.5rem;">Đăng nhập</a>
+          <a href="#contact" class="btn btn-primary">Bắt đầu</a>
+          <button class="mobile-menu-btn" id="menuToggle" onclick="document.querySelector('.mobile-sidebar').classList.add('active'); document.querySelector('.sidebar-overlay').classList.add('active'); document.body.classList.add('body-locked');">
+            <ion-icon name="menu-outline"></ion-icon>
+          </button>
+        `;
+      }
+    }
+
+    window.toggleUserDropdown = (e) => {
+      e.stopPropagation();
+      document.getElementById('home-user-dropdown')?.classList.toggle('show');
+    };
+    document.addEventListener('click', () => {
+      document.getElementById('home-user-dropdown')?.classList.remove('show');
+    });
+
+    window.logout = () => {
+      localStorage.removeItem('crm_token');
+      localStorage.removeItem('crm_user');
+      window.location.href = 'login.html';
+    };
+
+    // --- Profile Modal Logic ---
+    let profileHasChanges = false;
+
+    window.openProfileModal = async () => {
+      document.getElementById('profile-modal').classList.add('show');
+      profileHasChanges = false;
+      
+      const user = JSON.parse(localStorage.getItem('crm_user'));
+      document.getElementById('m_name').value = user.name || '';
+      document.getElementById('m_email').value = user.email || '';
+      document.getElementById('m_phone').value = user.phone || '';
+      document.getElementById('m_address').value = user.address || '';
+      document.getElementById('m_avatar_input').value = user.avatar || '';
+      previewHomeAvatar(user.avatar || '', user.name || '?');
+
+      // Fetch fresh data from backend
+      try {
+        const token = localStorage.getItem('crm_token');
+        const res = await fetch('http://localhost:5000/users/profile', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (res.ok) {
+          const freshUser = await res.json();
+          document.getElementById('m_name').value = freshUser.name || '';
+          document.getElementById('m_phone').value = freshUser.phone || '';
+          document.getElementById('m_address').value = freshUser.address || '';
+          document.getElementById('m_avatar_input').value = freshUser.avatar || '';
+          previewHomeAvatar(freshUser.avatar || '', freshUser.name || '?');
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    window.closeProfileModal = () => {
+      if (profileHasChanges && !confirm('Bạn có thay đổi chưa lưu. Bạn có chắc chắn muốn đóng?')) return;
+      document.getElementById('profile-modal').classList.remove('show');
+    };
+
+    window.markProfileChange = () => { profileHasChanges = true; };
+
+    window.previewHomeAvatar = (url, name) => {
+      const img = document.getElementById('m_preview_avatar');
+      const letter = document.getElementById('m_preview_letter');
+      name = name || document.getElementById('m_name').value || '?';
+      if(url) {
+        img.src = url; img.style.display = 'block'; letter.style.display = 'none';
+      } else {
+        img.style.display = 'none'; letter.style.display = 'flex'; letter.textContent = name.charAt(0).toUpperCase();
+      }
+      markProfileChange();
+    };
+
+    window.handleHomeFileUpload = (e) => {
+      const file = e.target.files[0];
+      if(!file) return;
+      if(file.size > 2 * 1024 * 1024) return showHomeToast('Ảnh quá lớn, vui lòng chọn ảnh < 2MB', 'error');
+      
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const base64 = ev.target.result;
+        document.getElementById('m_avatar_input').value = base64;
+        previewHomeAvatar(base64);
+      };
+      reader.readAsDataURL(file);
+    };
+
+    window.saveHomeProfile = async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btn-save-home-profile');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<ion-icon name="sync-outline" class="spin"></ion-icon> Đang lưu...';
+      btn.disabled = true;
+      
+      try {
+        const payload = {
+          name: document.getElementById('m_name').value,
+          phone: document.getElementById('m_phone').value,
+          address: document.getElementById('m_address').value,
+          avatar: document.getElementById('m_avatar_input').value
+        };
+        
+        const token = localStorage.getItem('crm_token');
+        const res = await fetch('http://localhost:5000/users/profile', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify(payload)
+        });
+        
+        if(!res.ok) throw new Error('Lỗi cập nhật profile');
+        
+        const updatedUser = await res.json();
+        
+        // Update LocalStorage
+        const sessionUser = JSON.parse(localStorage.getItem('crm_user'));
+        const newUser = { ...sessionUser, ...updatedUser };
+        localStorage.setItem('crm_user', JSON.stringify(newUser));
+        
+        // Update UI
+        renderAuthHeader();
+        
+        profileHasChanges = false;
+        showHomeToast('Cập nhật Profile thành công!');
+        document.getElementById('profile-modal').classList.remove('show');
+      } catch (err) {
+        showHomeToast(err.message, 'error');
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    };
+
+    window.showHomeToast = (msg, type = 'success') => {
+      const toast = document.getElementById('home-toast');
+      toast.innerHTML = type === 'success' ? `<ion-icon name="checkmark-circle" style="color:#10b981;font-size:1.2rem;"></ion-icon> ${msg}` : `<ion-icon name="alert-circle" style="color:#ef4444;font-size:1.2rem;"></ion-icon> ${msg}`;
+      toast.className = 'toast-msg show';
+      setTimeout(() => toast.className = 'toast-msg', 3000);
+    };
+  </script>
+</body>
+
+</html>
