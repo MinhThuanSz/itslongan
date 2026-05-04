@@ -103,6 +103,37 @@ const create = async (req, res) => {
   }
 };
 
+// POST /orders/admin-create - ADMIN/MANAGER tạo đơn trực tiếp
+const adminCreate = async (req, res) => {
+  try {
+    const { customer_id, items, total_price, status } = req.body;
+    
+    // Tạo order
+    const order = await Order.create({
+      order_code: generateOrderCode(),
+      customer_id: customer_id || req.user.id,
+      total_price: total_price || 0,
+      status: status || 'pending',
+    });
+
+    // Tạo order details
+    if (items && items.length) {
+      for (const item of items) {
+        await OrderDetail.create({
+          order_id: order.id,
+          product_id: item.product_id || null, // Có thể null nếu là dịch vụ ngoài
+          quantity: item.quantity || 1,
+          price: item.price || 0,
+        });
+      }
+    }
+
+    res.status(201).json({ message: 'Tạo đơn hàng thành công', order });
+  } catch (err) {
+    res.status(500).json({ message: 'Lỗi server', error: err.message });
+  }
+};
+
 // PUT /orders/:id/status - ADMIN/MANAGER
 const updateStatus = async (req, res) => {
   try {
@@ -119,4 +150,4 @@ const updateStatus = async (req, res) => {
   }
 };
 
-module.exports = { getAll, getById, create, updateStatus };
+module.exports = { getAll, getById, create, updateStatus, adminCreate };
