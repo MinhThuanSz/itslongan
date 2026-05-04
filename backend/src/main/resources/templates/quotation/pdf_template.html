@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: 'Arial', sans-serif; margin: 0; padding: 0; font-size: 12px; line-height: 1.4; }
+        .container { padding: 40px; }
+        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+        .title { font-size: 20px; font-weight: bold; margin-bottom: 5px; }
+        .info-section { display: table; width: 100%; margin-bottom: 20px; }
+        .info-col { display: table-cell; width: 50%; vertical-align: top; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid #000; padding: 6px; text-align: left; }
+        th { background-color: #f2f2f2; font-weight: bold; text-align: center; }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .footer-section { display: table; width: 100%; margin-top: 50px; text-align: center; }
+        .footer-col { display: table-cell; width: 50%; }
+        .group-row { background-color: #eee; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="title" th:text="${quotation.title}">BẢNG KHỐI LƯỢNG THANH TOÁN</div>
+            <div th:text="${quotation.description}">V/v: Cung cấp thiết bị và dịch vụ</div>
+        </div>
+
+        <div class="info-section">
+            <div class="info-col">
+                <p><strong>Kính gửi:</strong> <span th:text="${quotation.customer.name}"></span></p>
+                <p><strong>Địa chỉ:</strong> <span th:text="${quotation.customer.address}"></span></p>
+                <p><strong>Người nhận:</strong> <span th:text="${quotation.customer.contactPerson}"></span></p>
+            </div>
+            <div class="info-col" style="padding-left: 50px;">
+                <p><strong>Báo giá số:</strong> <span th:text="${quotation.quotationNo}"></span></p>
+                <p><strong>Ngày báo giá:</strong> <span th:text="${#temporals.format(quotation.createdDate, 'dd/MM/yyyy')}"></span></p>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 30px;">STT</th>
+                    <th>NỘI DUNG</th>
+                    <th style="width: 50px;">ĐVT</th>
+                    <th style="width: 40px;">SL</th>
+                    <th style="width: 80px;">ĐƠN GIÁ</th>
+                    <th style="width: 100px;">THÀNH TIỀN</th>
+                </tr>
+            </thead>
+            <tbody>
+                <th:block th:each="item : ${quotation.items}">
+                    <tr th:if="${item.groupName != null and !item.groupName.isEmpty()}" class="group-row">
+                        <td colspan="5" th:text="${item.groupName}"></td>
+                        <td class="text-right"></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center" th:text="${item.stt}"></td>
+                        <td th:text="${item.content}"></td>
+                        <td class="text-center" th:text="${item.unit}"></td>
+                        <td class="text-center" th:text="${item.quantity}"></td>
+                        <td class="text-right" th:text="${#numbers.formatDecimal(item.unitPrice, 0, 'COMMA', 0, 'POINT')}"></td>
+                        <td class="text-right" th:text="${#numbers.formatDecimal(item.totalPrice, 0, 'COMMA', 0, 'POINT')}"></td>
+                    </tr>
+                </th:block>
+                <tr>
+                    <td colspan="5" class="text-right"><strong>Tổng cộng trước thuế GTGT (VNĐ):</strong></td>
+                    <td class="text-right"><strong><span th:text="${#numbers.formatDecimal(quotation.subTotal, 0, 'COMMA', 0, 'POINT')}"></span></strong></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div style="margin-top: 20px;">
+            <p><strong><u>Điều kiện thương mại:</u></strong></p>
+            <div th:each="term, stat : ${quotation.terms}">
+                <span th:text="${stat.count} + '. ' + ${term.termContent}"></span>
+            </div>
+        </div>
+
+        <div class="footer-section">
+            <div class="footer-col">
+                <p><strong>XÁC NHẬN KHÁCH HÀNG</strong></p>
+                <br><br><br>
+            </div>
+            <div class="footer-col">
+                <p><strong>ĐẠI DIỆN CÔNG TY</strong></p>
+                <br><br><br>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

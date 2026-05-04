@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout}">
+<body>
+    <div th:fragment="content">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h1>Chi tiết Báo giá</h1>
+            <div style="display: flex; gap: 0.5rem;">
+                <a th:href="@{'/quotations/export/pdf/' + ${quotation.id}}" class="btn btn-danger"><i class="fas fa-file-pdf"></i> In PDF</a>
+                <a th:href="@{'/quotations/export/excel/' + ${quotation.id}}" class="btn btn-success"><i class="fas fa-file-excel"></i> Xuất Excel</a>
+                <a th:href="@{/quotations}" class="btn btn-secondary">Quay lại danh sách</a>
+            </div>
+        </div>
+
+        <div class="card" id="quotationPreview" style="max-width: 800px; margin: 0 auto; padding: 40px; border: 1px solid #ddd;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h2 th:text="${quotation.title}">BẢNG KHỐI LƯỢNG THANH TOÁN</h2>
+                <p th:text="${quotation.description}">V/v: Cung cấp thiết bị và dịch vụ</p>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; margin-bottom: 30px;">
+                <div style="width: 50%;">
+                    <p><strong>Kính gửi:</strong> <span th:text="${quotation.customer.name}"></span></p>
+                    <p><strong>Địa chỉ:</strong> <span th:text="${quotation.customer.address}"></span></p>
+                    <p><strong>Người nhận:</strong> <span th:text="${quotation.customer.contactPerson}"></span></p>
+                </div>
+                <div style="width: 40%;">
+                    <p><strong>Báo giá số:</strong> <span th:text="${quotation.quotationNo}"></span></p>
+                    <p><strong>Ngày báo giá:</strong> <span th:text="${#temporals.format(quotation.createdDate, 'dd/MM/yyyy')}"></span></p>
+                </div>
+            </div>
+
+            <table style="width: 100%; border-collapse: collapse; border: 1px solid #000; margin-bottom: 20px;">
+                <thead>
+                    <tr style="background-color: #f2f2f2;">
+                        <th style="border: 1px solid #000; padding: 5px;">STT</th>
+                        <th style="border: 1px solid #000; padding: 5px;">NỘI DUNG</th>
+                        <th style="border: 1px solid #000; padding: 5px;">ĐVT</th>
+                        <th style="border: 1px solid #000; padding: 5px;">SL</th>
+                        <th style="border: 1px solid #000; padding: 5px;">ĐƠN GIÁ</th>
+                        <th style="border: 1px solid #000; padding: 5px;">THÀNH TIỀN</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <th:block th:each="item : ${quotation.items}">
+                        <tr th:if="${item.groupName != null and !item.groupName.isEmpty()}" style="background-color: #eee;">
+                            <td colspan="5" style="border: 1px solid #000; padding: 5px; font-weight: bold;" th:text="${item.groupName}"></td>
+                            <td style="border: 1px solid #000; padding: 5px; text-align: right; font-weight: bold;"></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #000; padding: 5px; text-align: center;" th:text="${item.stt}"></td>
+                            <td style="border: 1px solid #000; padding: 5px;" th:text="${item.content}"></td>
+                            <td style="border: 1px solid #000; padding: 5px; text-align: center;" th:text="${item.unit}"></td>
+                            <td style="border: 1px solid #000; padding: 5px; text-align: center;" th:text="${item.quantity}"></td>
+                            <td style="border: 1px solid #000; padding: 5px; text-align: right;" th:text="${#numbers.formatDecimal(item.unitPrice, 0, 'COMMA', 0, 'POINT')}"></td>
+                            <td style="border: 1px solid #000; padding: 5px; text-align: right;" th:text="${#numbers.formatDecimal(item.totalPrice, 0, 'COMMA', 0, 'POINT')}"></td>
+                        </tr>
+                    </th:block>
+                    <tr>
+                        <td colspan="5" style="border: 1px solid #000; padding: 5px; text-align: right; font-weight: bold;">Tổng cộng trước thuế GTGT:</td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: right; font-weight: bold;" th:text="${#numbers.formatDecimal(quotation.subTotal, 0, 'COMMA', 0, 'POINT')}"></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div style="margin-top: 20px;">
+                <p><strong>Điều kiện thương mại:</strong></p>
+                <ol>
+                    <li th:each="term : ${quotation.terms}" th:text="${term.termContent}"></li>
+                </ol>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; margin-top: 50px; text-align: center;">
+                <div style="width: 45%;">
+                    <p><strong>XÁC NHẬN KHÁCH HÀNG</strong></p>
+                    <br><br><br>
+                </div>
+                <div style="width: 45%;">
+                    <p><strong>ĐẠI DIỆN CÔNG TY</strong></p>
+                    <br><br><br>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

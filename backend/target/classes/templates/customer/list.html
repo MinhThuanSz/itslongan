@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout}">
+<body>
+    <div th:fragment="content">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h1>Khách hàng</h1>
+            <a th:href="@{/customers/create}" class="btn btn-primary">Thêm Khách hàng mới</a>
+        </div>
+
+        <div class="card">
+            <form th:action="@{/customers}" method="get" style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+                <input type="text" name="keyword" th:value="${keyword}" placeholder="Tìm kiếm khách hàng..." style="flex: 1;">
+                <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+            </form>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tên khách hàng</th>
+                        <th>Địa chỉ</th>
+                        <th>Số điện thoại</th>
+                        <th>Email</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="c : ${customers}">
+                        <td th:text="${c.name}"></td>
+                        <td th:text="${c.address}"></td>
+                        <td th:text="${c.phone}"></td>
+                        <td th:text="${c.email}"></td>
+                        <td>
+                            <a th:href="@{'/customers/edit/' + ${c.id}}" class="btn btn-primary btn-sm"><i class="fas fa-edit"></i></a>
+                            <a th:href="@{'/customers/delete/' + ${c.id}}" class="btn btn-danger btn-sm" onclick="return confirm('Bạn có chắc chắn muốn xóa?')"><i class="fas fa-trash"></i></a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

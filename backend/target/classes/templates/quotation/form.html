@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout}">
+<body>
+    <div th:fragment="content">
+        <h1>Tạo/Chỉnh sửa Báo giá</h1>
+
+        <form th:action="@{/quotations/save}" th:object="${quotation}" method="post" id="quotationForm">
+            <input type="hidden" th:field="*{id}">
+            
+            <div class="card">
+                <h3>Thông tin Chung</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Số báo giá</label>
+                        <input type="text" th:field="*{quotationNo}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Ngày tháng</label>
+                        <input type="date" th:field="*{createdDate}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Khách hàng</label>
+                        <select th:field="*{customer.id}" required>
+                            <option value="">Chọn Khách hàng</option>
+                            <option th:each="c : ${customers}" th:value="${c.id}" th:text="${c.name}"></option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Tiêu đề</label>
+                        <input type="text" th:field="*{title}" placeholder="BẢNG KHỐI LƯỢNG THANH TOÁN">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Mô tả</label>
+                    <textarea th:field="*{description}" rows="2"></textarea>
+                </div>
+            </div>
+
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h3>Hạng mục công việc</h3>
+                    <button type="button" class="btn btn-success" id="addItem">Thêm dòng</button>
+                </div>
+                <table id="itemsTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">STT</th>
+                            <th>Nhóm/Hạng mục</th>
+                            <th>Nội dung công việc</th>
+                            <th style="width: 80px;">ĐVT</th>
+                            <th style="width: 80px;">Số lượng</th>
+                            <th style="width: 120px;">Đơn giá</th>
+                            <th style="width: 120px;">Thành tiền</th>
+                            <th style="width: 50px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="itemsBody">
+                        <tr th:each="item, stat : *{items}">
+                            <td><input type="number" th:field="*{items[__${stat.index}__].stt}" style="width: 50px;"></td>
+                            <td><input type="text" th:field="*{items[__${stat.index}__].groupName}" placeholder="Vd: I. Đèn LED UFO"></td>
+                            <td><textarea th:field="*{items[__${stat.index}__].content}" rows="1"></textarea></td>
+                            <td><input type="text" th:field="*{items[__${stat.index}__].unit}"></td>
+                            <td><input type="number" th:field="*{items[__${stat.index}__].quantity}" class="qty-input"></td>
+                            <td><input type="number" th:field="*{items[__${stat.index}__].unitPrice}" class="price-input"></td>
+                            <td class="item-total">0</td>
+                            <td><button type="button" class="btn btn-danger btn-sm remove-row">x</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <h3>Điều khoản & Điều kiện</h3>
+                <div id="termsContainer">
+                    <div th:each="term, stat : *{terms}" class="term-row" style="margin-bottom: 0.5rem; display: flex; gap: 0.5rem;">
+                        <textarea th:field="*{terms[__${stat.index}__].termContent}" style="flex: 1;"></textarea>
+                        <button type="button" class="btn btn-danger remove-term">x</button>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-success" id="addTerm">Thêm điều khoản</button>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem;">
+                <a th:href="@{/quotations}" class="btn btn-secondary" style="text-decoration: none; display: inline-block;">Hủy bỏ</a>
+                <button type="submit" class="btn btn-primary">Lưu Báo giá</button>
+            </div>
+        </form>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const itemsBody = document.getElementById('itemsBody');
+                const addItemBtn = document.getElementById('addItem');
+                
+                function calculateRow(row) {
+                    const qty = row.querySelector('.qty-input').value || 0;
+                    const price = row.querySelector('.price-input').value || 0;
+                    const total = qty * price;
+                    row.querySelector('.item-total').textContent = new Intl.NumberFormat('vi-VN').format(total) + ' VNĐ';
+                }
+
+                itemsBody.addEventListener('input', function(e) {
+                    if (e.target.classList.contains('qty-input') || e.target.classList.contains('price-input')) {
+                        calculateRow(e.target.closest('tr'));
+                    }
+                });
+
+                addItemBtn.addEventListener('click', function() {
+                    const index = itemsBody.rows.length;
+                    const row = `
+                        <tr>
+                            <td><input type="number" name="items[${index}].stt" style="width: 50px;" value="${index + 1}"></td>
+                            <td><input type="text" name="items[${index}].groupName"></td>
+                            <td><textarea name="items[${index}].content" rows="1"></textarea></td>
+                            <td><input type="text" name="items[${index}].unit"></td>
+                            <td><input type="number" name="items[${index}].quantity" class="qty-input"></td>
+                            <td><input type="number" name="items[${index}].unitPrice" class="price-input"></td>
+                            <td class="item-total">0</td>
+                            <td><button type="button" class="btn btn-danger btn-sm remove-row">x</button></td>
+                        </tr>
+                    `;
+                    itemsBody.insertAdjacentHTML('beforeend', row);
+                });
+
+                itemsBody.addEventListener('click', function(e) {
+                    if (e.target.classList.contains('remove-row')) {
+                        e.target.closest('tr').remove();
+                    }
+                });
+
+                // Terms
+                const termsContainer = document.getElementById('termsContainer');
+                const addTermBtn = document.getElementById('addTerm');
+                addTermBtn.addEventListener('click', function() {
+                    const index = termsContainer.children.length;
+                    const termHtml = `
+                        <div class="term-row" style="margin-bottom: 0.5rem; display: flex; gap: 0.5rem;">
+                            <textarea name="terms[${index}].termContent" style="flex: 1;"></textarea>
+                            <button type="button" class="btn btn-danger remove-term">x</button>
+                        </div>
+                    `;
+                    termsContainer.insertAdjacentHTML('beforeend', termHtml);
+                });
+
+                termsContainer.addEventListener('click', function(e) {
+                    if (e.target.classList.contains('remove-term')) {
+                        e.target.parentElement.remove();
+                    }
+                });
+            });
+        </script>
+    </div>
+</body>
+</html>

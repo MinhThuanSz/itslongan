@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout}">
+<head>
+    <title>Dashboard</title>
+</head>
+<body>
+    <div th:fragment="content">
+        <div class="header-section">
+            <h1>Trang chủ</h1>
+            <p>Chào mừng quay trở lại hệ thống Quản lý Báo giá.</p>
+        </div>
+
+        <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+            <div class="card stat-card" style="border-left: 4px solid var(--primary-color);">
+                <div class="stat-label" style="color: var(--text-secondary); font-size: 0.875rem;">Tổng số Báo giá</div>
+                <div class="stat-value" style="font-size: 2rem; font-weight: bold;" th:text="${quotationCount}">0</div>
+            </div>
+            <div class="card stat-card" style="border-left: 4px solid var(--success-color);">
+                <div class="stat-label" style="color: var(--text-secondary); font-size: 0.875rem;">Tổng số Khách hàng</div>
+                <div class="stat-value" style="font-size: 2rem; font-weight: bold;" th:text="${customerCount}">0</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h2 style="margin: 0;">Báo giá Gần đây</h2>
+                <a th:href="@{/quotations/create}" class="btn btn-primary">Tạo mới</a>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Số hiệu</th>
+                        <th>Khách hàng</th>
+                        <th>Tiêu đề</th>
+                        <th>Ngày tạo</th>
+                        <th>Tổng tiền</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="q : ${recentQuotations}">
+                        <td th:text="${q.quotationNo}">-</td>
+                        <td th:text="${q.customer != null ? q.customer.name : 'N/A'}">Customer</td>
+                        <td th:text="${q.title}">Title</td>
+                        <td th:text="${#temporals.format(q.createdDate, 'dd/MM/yyyy')}">Date</td>
+                        <td th:text="${#numbers.formatDecimal(q.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">0</td>
+                        <td>
+                            <a th:href="@{'/quotations/view/' + ${q.id}}" class="btn btn-primary btn-sm"><i class="fas fa-eye"></i></a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
