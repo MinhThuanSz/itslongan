@@ -1,44 +1,39 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
-const Product = sequelize.define('Product', {
+const Quotation = sequelize.define('Quotation', {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true,
   },
-  product_code: {
+  quote_code: {
     type: DataTypes.STRING(50),
     allowNull: false,
     unique: true,
   },
-  name: {
-    type: DataTypes.STRING(200),
-    allowNull: false,
-  },
-  description: {
-    type: DataTypes.TEXT,
+  company_id: {
+    type: DataTypes.INTEGER,
     allowNull: true,
   },
-  image: {
-    type: DataTypes.TEXT,
+  customer_id: {
+    type: DataTypes.INTEGER,
     allowNull: true,
   },
-  price: {
+  total_amount: {
     type: DataTypes.DECIMAL(15, 2),
     allowNull: false,
     defaultValue: 0,
   },
-  stock: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    defaultValue: 0,
-  },
+  note: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  }
 }, {
-  tableName: 'crm_products',
+  tableName: 'crm_quotations',
   timestamps: true,
   createdAt: 'created_at',
   updatedAt: 'updated_at',
 });
 
-module.exports = Product;
+module.exports = Quotation;

@@ -16,6 +16,7 @@ const productRoutes = require('./src/routes/productRoutes');
 const orderRoutes = require('./src/routes/orderRoutes');
 const cartRoutes = require('./src/routes/cartRoutes');
 const revenueRoutes = require('./src/routes/revenueRoutes');
+const quotationRoutes = require('./src/routes/quotationRoutes');
 
 const app = express();
 
@@ -42,6 +43,7 @@ app.use('/products', productRoutes);
 app.use('/orders', orderRoutes);
 app.use('/cart', cartRoutes);
 app.use('/revenue', revenueRoutes);
+app.use('/quotations', quotationRoutes);
 
 // Health check
 app.get('/', (req, res) => res.json({ message: 'CRM API đang hoạt động ✅', version: '1.0.0' }));

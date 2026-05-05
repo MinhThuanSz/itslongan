@@ -156,6 +156,18 @@
           <form id="quoteForm">
             <div class="form-grid">
               <div class="form-group">
+                <label>Chọn Công ty (Dữ liệu cũ)</label>
+                <select id="q_company_select" onchange="fillCompanyInfo(this.value)">
+                  <option value="">-- Chọn công ty --</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Chọn Khách hàng (Dữ liệu cũ)</label>
+                <select id="q_customer_select" onchange="fillCustomerInfo(this.value)">
+                  <option value="">-- Chọn khách hàng --</option>
+                </select>
+              </div>
+              <div class="form-group">
                 <label>Tên Khách Hàng / Đơn vị</label>
                 <input type="text" id="q_customer" required placeholder="VD: KCN CẦU TRÀM">
               </div>
@@ -163,7 +175,7 @@
                 <label>Người nhận</label>
                 <input type="text" id="q_receiver" placeholder="VD: ANH GIANG">
               </div>
-              <div class="form-group">
+              <div class="form-group" style="grid-column: span 2;">
                 <label>Địa chỉ</label>
                 <input type="text" id="q_address" placeholder="VD: Nhơn Trạch, Tỉnh Tây Ninh">
               </div>
@@ -172,21 +184,33 @@
                 <input type="text" id="q_phone" placeholder="VD: 0909 123 456">
               </div>
               <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="q_email" placeholder="VD: customer@gmail.com">
+              </div>
+              <div class="form-group">
                 <label>Ngày báo giá</label>
                 <input type="date" id="q_date" required>
               </div>
+              <div class="form-group">
+                <label>Mã báo giá</label>
+                <input type="text" id="q_code" readonly>
+              </div>
             </div>
 
-            <h4 style="margin-top:20px; border-bottom:1px solid var(--border); padding-bottom:10px;">Chi tiết sản phẩm</h4>
+            <h4 style="margin-top:20px; border-bottom:1px solid var(--border); padding-bottom:10px; display:flex; justify-content:space-between;">
+              Chi tiết sản phẩm
+              <select id="q_product_select" onchange="addProductFromSelect(this.value)" style="width:200px; font-size:12px; background:rgba(255,255,255,0.1); color:white; border:1px solid var(--border); border-radius:4px;">
+                <option value="">-- Thêm từ sản phẩm có sẵn --</option>
+              </select>
+            </h4>
             <table class="dynamic-table" id="items-table">
               <thead>
                 <tr>
                   <th width="20%">Sản phẩm</th>
                   <th width="30%">Nội dung</th>
-                  <th width="10%">ĐVT</th>
                   <th width="10%">Số lượng</th>
                   <th width="15%">Đơn giá (VNĐ)</th>
-                  <th width="15%">Thành tiền</th>
+                  <th width="20%">Thành tiền</th>
                   <th width="5%"></th>
                 </tr>
               </thead>
@@ -196,18 +220,18 @@
             </table>
             
             <div style="display:flex; justify-content:space-between; margin-top:10px; align-items:center;">
-              <button type="button" class="btn btn-ghost" style="border:1px dashed var(--border)" onclick="addBlankRow()">+ Thêm dòng</button>
+              <button type="button" class="btn btn-ghost" style="border:1px dashed var(--border)" onclick="addBlankRow()">+ Thêm dòng thủ công</button>
               <div style="font-size:18px; font-weight:bold;">Tổng cộng: <span id="q_total_display" style="color:var(--success)">0</span> VNĐ</div>
             </div>
 
             <div class="form-group" style="margin-top:20px;">
-              <label>Điều khoản thương mại</label>
-              <textarea id="q_terms" rows="4">1. Thời hạn báo giá: 14 ngày kể từ ngày báo giá.&#13;&#10;2. Giá chưa bao gồm Thuế GTGT.&#13;&#10;3. Tạm ứng 50% ngay sau khi xác nhận đơn hàng.</textarea>
+              <label>Ghi chú / Điều khoản</label>
+              <textarea id="q_note" rows="4"></textarea>
             </div>
 
             <div style="margin-top:20px; display:flex; gap:10px;">
-              <button type="button" class="btn btn-primary" onclick="saveQuote()">💾 Lưu Báo giá</button>
-              <button type="button" class="btn btn-ghost" onclick="previewQuote()">👁️ Xem trước & In</button>
+              <button type="button" class="btn btn-primary" onclick="handleSave()">💾 Lưu Báo giá</button>
+              <button type="button" class="btn btn-ghost" onclick="previewQuote()">👁️ Xem trước A4</button>
             </div>
           </form>
         </div>
@@ -221,84 +245,103 @@
     <div class="preview-actions">
       <button class="btn btn-ghost" style="background:white;color:black" onclick="closePreview()">Đóng</button>
       <button class="btn btn-primary" onclick="exportPDF()">📄 Xuất PDF</button>
-      <button class="btn btn-success" style="background:#10b981;color:white;border:none;border-radius:8px;padding:10px 20px" onclick="exportExcel()">📊 Xuất Excel</button>
+      <button class="btn btn-success" style="background:#10b981;color:white;border:none;border-radius:8px;padding:10px 20px" onclick="window.print()">🖨️ In Báo giá</button>
     </div>
     
     <div class="a4-paper" id="a4-content">
-      <!-- A4 Header -->
+      <style>
+        @media print {
+          body * { visibility: hidden; }
+          #a4-content, #a4-content * { visibility: visible; }
+          #a4-content { position: absolute; left: 0; top: 0; width: 210mm; height: 297mm; margin: 0; padding: 20mm; box-shadow: none; }
+          .preview-overlay { background: white; padding: 0; }
+          .preview-actions { display: none; }
+        }
+        
+        .a4-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+        .a4-logo-side { width: 40%; }
+        .a4-logo-side img { height: 70px; object-fit: contain; }
+        .a4-logo-fallback { font-size: 24px; font-weight: 800; color: #003366; }
+        
+        .a4-company-side { width: 55%; text-align: right; font-size: 9pt; line-height: 1.4; color: #000; }
+        .a4-company-name-bold { font-weight: bold; font-size: 11pt; }
+        
+        .a4-title-main { text-align: center; font-size: 26px; font-weight: bold; margin: 30px 0; text-transform: uppercase; letter-spacing: 2px; }
+        
+        .a4-customer-info { margin-bottom: 25px; }
+        .a4-customer-info p { margin: 4px 0; }
+        .a4-customer-label { font-weight: bold; min-width: 120px; display: inline-block; }
+        
+        .a4-table-main { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        .a4-table-main th, .a4-table-main td { border: 1px solid #000; padding: 8px 10px; }
+        .a4-table-main th { background: #f2f2f2; font-weight: bold; font-size: 11pt; text-align: center; }
+        .a4-table-main td { font-size: 11pt; }
+        
+        .a4-total-section { margin-top: 10px; text-align: right; }
+        .a4-total-row { font-weight: bold; font-size: 12pt; }
+        
+        .a4-footer-sign { margin-top: 50px; display: flex; justify-content: flex-end; }
+        .a4-sign-box { width: 250px; text-align: center; }
+        .a4-sign-title { font-weight: bold; margin-bottom: 100px; }
+      </style>
+
+      <!-- Header -->
       <div class="a4-header">
-        <div class="a4-logo">
-          <!-- Thay bằng logo thực tế của ITS -->
-          <h2 style="margin:0;color:#003366;font-family:Arial;font-weight:900;">I T S</h2>
-          <div style="font-size:8pt;margin-top:5px;">ITS Long An Co., Ltd</div>
+        <div class="a4-logo-side">
+          <img src="/logo.png" alt="LOGO" onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='block'">
+          <div id="logo-fallback" class="a4-logo-fallback" style="display:none;">ITS LONG AN</div>
         </div>
-        <div class="a4-company-info">
-          <div class="a4-company-name">CÔNG TY TNHH GIẢI PHÁP CÔNG NGHỆ LONG AN</div>
-          <div>Địa chỉ: 15/8 Trương Văn Bang, KP3, Xã Cần Giuộc, Tỉnh Tây Ninh</div>
+        <div class="a4-company-side">
+          <div class="a4-company-name-bold">CÔNG TY TNHH GIẢI PHÁP CÔNG NGHỆ LONG AN</div>
+          <div>ĐỊA CHỈ: 15/8 TRƯƠNG VĂN BANG, KP3,</div>
+          <div>XÃ CẦN GIUỘC, TỈNH TÂY NINH</div>
           <div>ĐT: 0272.373.1369 - MST: 1101 864 671</div>
-          <div>Website: www.itslongan.com - Email: itslongan@gmail.com</div>
+          <div>WEBSITE: <a href="http://WWW.ITSLONGAN.COM" style="color:black; text-decoration:none;">WWW.ITSLONGAN.COM</a></div>
+          <div>EMAIL: <a href="mailto:ITSLONGAN@GMAIL.COM" style="color:black; text-decoration:none;">ITSLONGAN@GMAIL.COM</a></div>
         </div>
       </div>
       
-      <div class="a4-title">BẢNG KHỐI LƯỢNG THANH TOÁN</div>
-      <div class="a4-subtitle">V/v: Cung cấp thiết bị và dịch vụ</div>
+      <div class="a4-title-main">BÁO GIÁ</div>
       
-      <div class="a4-meta">
-        <div class="a4-meta-left">
-          <table>
-            <tr><td class="a4-meta-label">Kính gửi:</td><td id="p_customer"></td></tr>
-            <tr><td class="a4-meta-label">Địa chỉ:</td><td id="p_address"></td></tr>
-            <tr><td class="a4-meta-label">Người nhận:</td><td id="p_receiver"></td></tr>
-            <tr><td class="a4-meta-label">Số điện thoại:</td><td id="p_phone"></td></tr>
-          </table>
-        </div>
-        <div class="a4-meta-right">
-          <table>
-            <tr><td class="a4-meta-label">Báo giá số:</td><td id="p_code"></td></tr>
-            <tr><td class="a4-meta-label">Ngày báo giá:</td><td id="p_date"></td></tr>
-            <tr><td class="a4-meta-label">Người lập:</td><td>P. Kinh Doanh</td></tr>
-          </table>
-        </div>
+      <div class="a4-customer-info">
+        <p><span class="a4-customer-label">Khách hàng:</span> <span id="p_customer" style="font-weight:bold;"></span></p>
+        <p><span class="a4-customer-label">Công ty:</span> <span id="p_company_name"></span></p>
+        <p><span class="a4-customer-label">Số điện thoại:</span> <span id="p_phone"></span></p>
+        <p><span class="a4-customer-label">Địa chỉ:</span> <span id="p_address"></span></p>
+        <p><span class="a4-customer-label">Ngày báo giá:</span> <span id="p_date"></span></p>
+        <p><span class="a4-customer-label">Mã báo giá:</span> <span id="p_code"></span></p>
       </div>
       
-      <div class="a4-greeting">Chúng tôi xin trân trọng gửi đến Quý Khách hàng bảng báo giá chi tiết như sau:</div>
-      
-      <table class="a4-table" id="p_table">
+      <table class="a4-table-main">
         <thead>
           <tr>
             <th width="5%">STT</th>
-            <th width="20%">NỘI DUNG</th>
-            <th width="10%">ĐVT</th>
-            <th width="10%">SỐ LƯỢNG</th>
-            <th width="15%">ĐƠN GIÁ (VNĐ)</th>
-            <th width="20%">THÀNH TIỀN (VNĐ)</th>
+            <th width="35%">TÊN SẢN PHẨM / DỊCH VỤ</th>
+            <th width="10%">SL</th>
+            <th width="20%">ĐƠN GIÁ</th>
+            <th width="30%">THÀNH TIỀN</th>
           </tr>
         </thead>
         <tbody id="p_table_body">
-          <!-- Rendered by JS -->
+          <!-- JS rows -->
         </tbody>
         <tfoot>
-          <tr class="total-row">
-            <td colspan="5" class="text-right">Tổng cộng giá trước thuế GTGT (VNĐ):</td>
-            <td class="text-right" id="p_total"></td>
+          <tr class="a4-total-row">
+            <td colspan="4" style="text-align:right">TỔNG CỘNG:</td>
+            <td style="text-align:right" id="p_total"></td>
           </tr>
         </tfoot>
       </table>
-      
-      <div class="a4-terms">
-        <h4>Điều kiện thương mại:</h4>
-        <div id="p_terms" style="white-space: pre-wrap;"></div>
-        <p style="margin-top:15px; font-style:italic; font-weight:bold">Để biết thêm thông tin chi tiết vui lòng liên hệ trực tiếp ITS để được hỗ trợ tốt nhất!</p>
-        <p>Trân trọng !</p>
+
+      <div style="margin-top:20px; font-style:italic;" id="p_note_section">
+        <strong>Ghi chú:</strong> <span id="p_note"></span>
       </div>
       
-      <div class="a4-signatures">
-        <div>
-          <div class="a4-sig-title">XÁC NHẬN KHÁCH HÀNG</div>
-        </div>
-        <div>
-          <div class="a4-sig-title">ĐẠI DIỆN CÔNG TY ITS LONG AN</div>
-          <div style="color:blue; font-family:cursive; font-size:24pt; transform:rotate(-5deg)">Hoàng Yến Nhi</div>
+      <div class="a4-footer-sign">
+        <div class="a4-sign-box">
+          <div class="a4-sign-title">ĐẠI DIỆN CÔNG TY</div>
+          <div style="height: 100px;"></div>
+          <!-- Để trống cho người dùng ký tay -->
         </div>
       </div>
     </div>

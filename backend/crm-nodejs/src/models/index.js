@@ -5,6 +5,8 @@ const Product = require('./Product');
 const Order = require('./Order');
 const OrderDetail = require('./OrderDetail');
 const CartItem = require('./CartItem');
+const Quotation = require('./Quotation');
+const QuotationItem = require('./QuotationItem');
 
 // Order associations
 Order.belongsTo(User, { foreignKey: 'customer_id', as: 'customer' });
@@ -21,4 +23,20 @@ CartItem.belongsTo(User, { foreignKey: 'user_id' });
 CartItem.belongsTo(Product, { foreignKey: 'product_id', as: 'product' });
 User.hasMany(CartItem, { foreignKey: 'user_id', as: 'cartItems' });
 
-module.exports = { User, Company, Customer, Product, Order, OrderDetail, CartItem };
+// Quotation associations
+Quotation.belongsTo(Company, { foreignKey: 'company_id', as: 'company' });
+Quotation.belongsTo(Customer, { foreignKey: 'customer_id', as: 'customer' });
+Quotation.hasMany(QuotationItem, { foreignKey: 'quotation_id', as: 'items' });
+QuotationItem.belongsTo(Quotation, { foreignKey: 'quotation_id' });
+
+module.exports = { 
+  User, 
+  Company, 
+  Customer, 
+  Product, 
+  Order, 
+  OrderDetail, 
+  CartItem,
+  Quotation,
+  QuotationItem
+};

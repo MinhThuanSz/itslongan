@@ -1,18 +1,20 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CRM Pro – Dashboard</title>
+  <title>ITS</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="dashboard.css" />
-  
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
+
 <body>
   <!-- Mobile Overlay -->
   <div id="mobile-overlay" class="mobile-overlay" onclick="toggleMobileMenu()"></div>
@@ -20,8 +22,7 @@
   <!-- Sidebar -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
-      <div class="sidebar-logo-icon"><i data-lucide="zap"></i></div>
-      <div class="sidebar-logo-text">CRM Pro</div>
+      <img src="/logo.png" alt="ITS Logo" class="sidebar-logo-img">
       <button class="btn-collapse" onclick="toggleSidebar()"><i data-lucide="chevron-left"></i></button>
     </div>
     <nav class="sidebar-nav">
@@ -30,7 +31,7 @@
         <i data-lucide="layout-dashboard"></i> <span>Dashboard</span>
         <div class="tooltip">Dashboard</div>
       </button>
-      
+
       <div class="nav-section-label">Nghiệp vụ</div>
       <button class="nav-item" onclick="loadView('quotation')">
         <i data-lucide="file-text"></i> <span>Báo giá</span>
@@ -54,7 +55,7 @@
         <i data-lucide="building-2"></i> <span>Công ty</span>
         <div class="tooltip">Công ty</div>
       </button>
-      
+
       <!-- Chỉ ADMIN mới thấy Quản lý Users -->
       <div class="nav-section-label" id="nav-users-label">Hệ thống</div>
       <button class="nav-item" id="nav-users-btn" onclick="loadView('users')">
@@ -75,20 +76,22 @@
         </div>
       </div>
       <div class="header-actions">
-        <a href="index.html" class="btn btn-ghost" style="margin-right:8px;"><i data-lucide="arrow-left"></i> Xem trang web</a>
+        <a href="index.html" class="btn btn-ghost" style="margin-right:8px;"><i data-lucide="arrow-left"></i> Xem trang
+          web</a>
         <button class="btn-icon-header relative"><i data-lucide="bell"></i></button>
         <div class="header-user" onclick="toggleDropdown(event)">
-           <div id="header-avatar" class="header-avatar">?</div>
-           <div class="header-user-info">
-             <div id="header-user-name" class="header-user-name">User</div>
-             <div id="header-user-role" class="header-user-role">Role</div>
-           </div>
-           <div class="dropdown-menu" id="user-dropdown">
-             <button class="dropdown-item" onclick="loadView('profile')"><i data-lucide="user"></i> Hồ sơ cá nhân</button>
-             <button class="dropdown-item"><i data-lucide="settings"></i> Cài đặt hệ thống</button>
-             <div class="dropdown-divider"></div>
-             <button class="dropdown-item danger" onclick="logout()"><i data-lucide="log-out"></i> Đăng xuất</button>
-           </div>
+          <div id="header-avatar" class="header-avatar">?</div>
+          <div class="header-user-info">
+            <div id="header-user-name" class="header-user-name">User</div>
+            <div id="header-user-role" class="header-user-role">Role</div>
+          </div>
+          <div class="dropdown-menu" id="user-dropdown">
+            <button class="dropdown-item" onclick="loadView('profile')"><i data-lucide="user"></i> Hồ sơ cá
+              nhân</button>
+            <button class="dropdown-item"><i data-lucide="settings"></i> Cài đặt hệ thống</button>
+            <div class="dropdown-divider"></div>
+            <button class="dropdown-item danger" onclick="logout()"><i data-lucide="log-out"></i> Đăng xuất</button>
+          </div>
         </div>
       </div>
     </header>
@@ -96,16 +99,52 @@
   </main>
 
   <!-- Hidden Print Area (for actual browser printing) -->
+  <style>
+    @media screen {
+      #print-area {
+        display: none !important;
+      }
+    }
+
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+
+      #print-area,
+      #print-area * {
+        visibility: visible;
+      }
+
+      #print-area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+      }
+    }
+  </style>
   <div id="print-area"></div>
 
   <!-- A4 Preview Modal (for on-screen viewing) -->
-  <div id="preview-modal" class="modal-overlay" style="align-items: flex-start; overflow-y: auto; padding: 40px 20px;">
-    <div style="background: white; width: 210mm; min-height: 297mm; margin: 0 auto; padding: 20mm; position: relative; box-shadow: 0 0 50px rgba(0,0,0,0.5); color: black;" id="preview-content">
-      <!-- Content injected by JS -->
-    </div>
-    <div style="position: fixed; top: 20px; right: 20px; display: flex; gap: 12px; z-index: 2001;">
-      <button class="btn btn-primary" onclick="window.print()" style="box-shadow: 0 4px 20px rgba(0,0,0,0.5);"><i data-lucide="printer"></i> In ngay</button>
-      <button class="btn btn-ghost" onclick="closePreview()" style="background: rgba(0,0,0,0.6); color: white; border: none;"><i data-lucide="x"></i> Đóng</button>
+  <div id="preview-modal" class="modal-overlay" style="align-items: flex-start; overflow-y: auto; padding: 20px;"
+    onclick="if(event.target === this) closePreview()">
+    <div
+      style="margin: 0 auto; display: flex; flex-direction: column; align-items: flex-end; gap: 12px; max-width: 210mm; width: 100%;">
+      <!-- Sticky Action Bar -->
+      <div
+        style="position: sticky; top: 0; z-index: 2001; display: flex; gap: 12px; background: rgba(15,23,42,0.8); padding: 10px 20px; border-radius: 12px; backdrop-filter: blur(8px);">
+        <button class="btn btn-primary" onclick="window.print()"><i data-lucide="printer"></i> In ngay</button>
+        <button class="btn btn-ghost" onclick="closePreview()"
+          style="background: rgba(255,255,255,0.1); color: white;"><i data-lucide="x"></i> Đóng</button>
+      </div>
+
+      <!-- A4 Paper -->
+      <div
+        style="background: white; width: 100%; min-height: 297mm; padding: 20mm; box-shadow: 0 0 50px rgba(0,0,0,0.5); color: black;"
+        id="preview-content">
+        <!-- Content injected by JS -->
+      </div>
     </div>
   </div>
 
@@ -119,16 +158,37 @@
       <form id="crud-form" onsubmit="handleCrudSubmit(event)">
         <div class="modal-body" id="crud-body"></div>
         <div class="modal-footer">
-           <button type="button" class="btn btn-ghost" onclick="closeCrudModal()">Hủy bỏ</button>
-           <button type="submit" class="btn btn-primary" id="crud-submit">
-             <i data-lucide="save"></i> Lưu dữ liệu
-           </button>
+          <button type="button" class="btn btn-ghost" onclick="closeCrudModal()">Hủy bỏ</button>
+          <button type="submit" class="btn btn-primary" id="crud-submit">
+            <i data-lucide="save"></i> Lưu dữ liệu
+          </button>
         </div>
       </form>
     </div>
   </div>
 
-  <div id="toast" class="toast"><i data-lucide="check-circle-2"></i> <span id="toast-msg"></span></div>
+  <!-- Toast System -->
+  <div id="toast" class="toast">
+    <i data-lucide="check-circle-2"></i>
+    <span id="toast-msg"></span>
+  </div>
+
+  <!-- Confirm Modal -->
+  <div id="confirm-modal" class="modal-overlay">
+    <div class="modal-card confirm-card">
+      <div class="modal-body" style="text-align:center;">
+        <div class="confirm-icon"><i data-lucide="alert-triangle" style="width:48px;height:48px;"></i></div>
+        <h3 id="confirm-title" style="margin-bottom:8px; font-size:20px;">Xác nhận xóa?</h3>
+        <p id="confirm-msg" style="color:var(--text-secondary); margin-bottom:24px;">Hành động này không thể hoàn tác.
+        </p>
+        <div style="display:flex; justify-content:center; gap:12px;">
+          <button type="button" class="btn btn-ghost" onclick="closeConfirm(false)">Hủy bỏ</button>
+          <button type="button" class="btn btn-primary" id="confirm-ok-btn"
+            style="background:var(--danger); border:none;">Xác nhận xóa</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script>
     // ==========================================
@@ -137,15 +197,15 @@
     const API = 'http://localhost:5000';
     const token = localStorage.getItem('crm_token');
     const user = JSON.parse(localStorage.getItem('crm_user') || 'null');
-    
+
     if (!token || !user) window.location.href = 'login.html';
     else if (user.role === 'CUSTOMER') window.location.href = 'index.html';
 
     // RBAC UI
     document.getElementById('header-user-name').textContent = user.name;
     document.getElementById('header-user-role').textContent = user.role.toLowerCase();
-    
-    if(user.avatar) {
+
+    if (user.avatar) {
       document.getElementById('header-avatar').innerHTML = `<img src="${user.avatar}">`;
     } else {
       document.getElementById('header-avatar').textContent = user.name.charAt(0).toUpperCase();
@@ -159,7 +219,7 @@
     // Initialize Sidebar State
     const sidebar = document.getElementById('sidebar');
     const savedCollapse = localStorage.getItem('sidebar_collapsed');
-    if(savedCollapse === 'true') sidebar.classList.add('collapsed');
+    if (savedCollapse === 'true') sidebar.classList.add('collapsed');
 
     window.toggleSidebar = () => {
       sidebar.classList.toggle('collapsed');
@@ -175,21 +235,61 @@
       e.stopPropagation();
       document.getElementById('user-dropdown').classList.toggle('show');
     };
-    
+
     document.addEventListener('click', () => {
       const drop = document.getElementById('user-dropdown');
       if (drop && drop.classList.contains('show')) drop.classList.remove('show');
     });
 
     // Helper Functions
+    // Improved Notification System
     const showToast = (msg, type = 'success') => {
-      const toast = document.getElementById('toast');
-      document.getElementById('toast-msg').textContent = msg;
-      const iconStr = type === 'success' ? 'check-circle-2' : 'alert-circle';
-      toast.querySelector('i').setAttribute('data-lucide', iconStr);
+      try {
+        const toast = document.getElementById('toast');
+        const toastMsg = document.getElementById('toast-msg');
+        if (!toast || !toastMsg) { console.warn("Toast elements not found:", msg); return; }
+
+        const toastIcon = toast.querySelector('i');
+        toastMsg.textContent = msg;
+
+        let iconName = 'check-circle-2';
+        if (type === 'error') iconName = 'x-circle';
+        if (type === 'info') iconName = 'info';
+
+        if (toastIcon) {
+          toastIcon.setAttribute('data-lucide', iconName);
+          if (window.lucide) lucide.createIcons();
+        }
+
+        toast.className = `toast show ${type}`;
+
+        if (window.toastTimer) clearTimeout(window.toastTimer);
+        window.toastTimer = setTimeout(() => {
+          toast.className = 'toast';
+        }, 3000);
+      } catch (e) { console.error("showToast error:", e); }
+    };
+
+    // Confirm Modal System
+    let confirmCallback = null;
+    const showConfirm = (title, msg, callback) => {
+      document.getElementById('confirm-title').textContent = title;
+      document.getElementById('confirm-msg').textContent = msg;
+      document.getElementById('confirm-modal').classList.add('show');
+      confirmCallback = callback;
+
+      // Set button click
+      const okBtn = document.getElementById('confirm-ok-btn');
+      okBtn.onclick = () => {
+        closeConfirm(true);
+      };
       lucide.createIcons();
-      toast.className = `toast show ${type}`;
-      setTimeout(() => toast.className = 'toast', 3000);
+    };
+
+    const closeConfirm = (result) => {
+      document.getElementById('confirm-modal').classList.remove('show');
+      if (result && confirmCallback) confirmCallback();
+      confirmCallback = null;
     };
 
     const logout = () => { localStorage.clear(); window.location.href = 'login.html'; };
@@ -202,11 +302,57 @@
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, ...(options.headers || {}) }
       });
       if (!res.ok) {
-        if(res.status === 401 || res.status === 403) logout();
-        const err = await res.json().catch(()=>({}));
+        if (res.status === 401 || res.status === 403) logout();
+        const err = await res.json().catch(() => ({}));
         throw new Error(err.message || 'Lỗi server');
       }
       return res.json();
+    };
+
+    // --- VALIDATION ENGINE ---
+    const validateField = (id, value) => {
+      try {
+        const el = document.getElementById(id);
+        if (!el) return true; // Skip if element not found (e.g. select without handled ID)
+
+        const parent = el.closest('.form-group');
+        const errorEl = parent ? parent.querySelector('.error-msg') : null;
+        let error = '';
+
+        if (id === 'm_email' || id === 'p_email') {
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!value) error = 'Vui lòng nhập Email';
+          else if (!emailRegex.test(value)) error = 'Email không hợp lệ';
+        } else if (id === 'm_phone' || id === 'p_phone') {
+          const phoneRegex = /^(0|\+84)[0-9]{9,10}$/;
+          if (!value) error = 'Vui lòng nhập số điện thoại';
+          else if (!phoneRegex.test(value.replace(/\s/g, ''))) error = 'Số điện thoại không hợp lệ (9-11 số)';
+        } else if (['m_name', 'p_name', 'm_code', 'm_addr'].includes(id)) {
+          if (!value || value.trim() === '') error = 'Vui lòng nhập thông tin này';
+        } else if (id === 'm_pass' && !currentEditId) {
+          if (!value || value.length < 6) error = 'Mật khẩu phải từ 6 ký tự';
+        }
+
+        if (error) {
+          el.classList.add('error');
+          if (errorEl) errorEl.textContent = error;
+          return false;
+        } else {
+          el.classList.remove('error');
+          if (errorEl) errorEl.textContent = '';
+          return true;
+        }
+      } catch (e) {
+        console.error("validateField error for ID " + id, e);
+        return true; // Default to valid if check crashes to avoid blocking submit
+      }
+    };
+
+    const normalizePhone = (phone) => {
+      if (!phone) return '';
+      let p = phone.replace(/\s/g, '');
+      if (p.startsWith('0')) p = '+84' + p.substring(1);
+      return p;
     };
 
     // State
@@ -221,8 +367,8 @@
     const updateNav = (view) => {
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
       const activeBtn = document.querySelector(`[onclick="loadView('${view.split('_')[0]}')"]`);
-      if(activeBtn) activeBtn.classList.add('active');
-      if(window.innerWidth < 768) {
+      if (activeBtn) activeBtn.classList.add('active');
+      if (window.innerWidth < 768) {
         sidebar.classList.remove('mobile-open');
         document.getElementById('mobile-overlay').classList.remove('active');
       }
@@ -232,8 +378,9 @@
       updateNav(view);
       currentModule = view;
       const content = document.getElementById('main-content');
-      
-      if(view !== 'quotation_form') {
+      content.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top on view change
+
+      if (view !== 'quotation_form') {
         content.innerHTML = `
           <div style="display:flex; justify-content:space-between; margin-bottom:24px;">
              <div class="skeleton" style="width:200px; height:30px;"></div>
@@ -273,19 +420,12 @@
       }
       currentData = data;
 
-      let thead = '', tbody = '';
-      if(data.length === 0) {
-        tbody = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon"><i data-lucide="database"></i></div><h3>Chưa có dữ liệu</h3><p style="color:var(--text-secondary)">Bắt đầu bằng cách tạo bản ghi đầu tiên.</p></div></td></tr>`;
-      } else {
-        tbody = data.map(item => buildRow(module, item)).join('');
-      }
-
       const titles = { users: 'Người dùng', customers: 'Khách hàng', products: 'Sản phẩm', companies: 'Công ty', orders: 'Đơn hàng' };
-
-      if(module === 'users' || module === 'customers') thead = `<tr><th>Họ tên</th><th>Email</th><th>Vai trò</th><th style="text-align:right">Thao tác</th></tr>`;
-      else if(module === 'products') thead = `<tr><th>Mã SP</th><th>Tên sản phẩm</th><th>Đơn giá</th><th>Tồn kho</th><th style="text-align:right">Thao tác</th></tr>`;
-      else if(module === 'companies') thead = `<tr><th>Tên Công ty</th><th>Email</th><th>SĐT</th><th style="text-align:right">Thao tác</th></tr>`;
-      else if(module === 'orders') thead = `<tr><th>Mã Đơn</th><th>Khách hàng</th><th>Tổng tiền</th><th>Trạng thái</th><th>Ngày tạo</th><th style="text-align:right">Thao tác</th></tr>`;
+      let thead = '';
+      if (module === 'users' || module === 'customers') thead = `<tr><th>Họ tên</th><th>Email</th><th>Vai trò</th><th style="text-align:right">Thao tác</th></tr>`;
+      else if (module === 'products') thead = `<tr><th style="width:60px">Ảnh</th><th>Mã SP</th><th>Tên sản phẩm</th><th>Đơn giá</th><th>Tồn kho</th><th style="text-align:right">Thao tác</th></tr>`;
+      else if (module === 'companies') thead = `<tr><th>Tên Công ty</th><th>Email</th><th>SĐT</th><th style="text-align:right">Thao tác</th></tr>`;
+      else if (module === 'orders') thead = `<tr><th>Mã Đơn</th><th>Khách hàng</th><th>Tổng tiền</th><th>Trạng thái</th><th>Ngày tạo</th><th style="text-align:right">Thao tác</th></tr>`;
 
       container.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:24px;">
@@ -304,64 +444,96 @@
             </div>
           </div>
           <div style="overflow-x:auto;">
-            <table id="data-table"><thead>${thead}</thead><tbody>${tbody}</tbody></table>
+            <table id="data-table"><thead>${thead}</thead><tbody id="table-body"></tbody></table>
           </div>
         </div>
       `;
+      renderTableBody();
+    }
+
+    function renderTableBody(highlightId = null) {
+      const tbody = document.getElementById('table-body');
+      if (!tbody) return;
+
+      if (currentData.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon"><i data-lucide="database"></i></div><h3>Chưa có dữ liệu</h3><p style="color:var(--text-secondary)">Bắt đầu bằng cách tạo bản ghi đầu tiên.</p></div></td></tr>`;
+      } else {
+        tbody.innerHTML = currentData.map(item => {
+          const rowHtml = buildRow(currentModule, item);
+          if (highlightId && item.id === highlightId) {
+            return rowHtml.replace('<tr>', '<tr class="row-highlight">');
+          }
+          return rowHtml;
+        }).join('');
+      }
+      lucide.createIcons();
     }
 
     function buildRow(module, item) {
-      if(module === 'users' || module === 'customers') {
-        const badge = `badge-${item.role.toLowerCase()}`;
-        return `<tr>
-          <td><div style="font-weight:600">${item.name}</div></td><td style="color:var(--text-secondary)">${item.email}</td>
-          <td><span class="badge ${badge}"><i data-lucide="user"></i> ${item.role}</span></td>
-          <td style="text-align:right">
-            <button type="button" class="btn-icon-header" onclick="openCrudModal(${item.id})"><i data-lucide="edit-2" style="width:16px;height:16px;"></i></button>
-            <button type="button" class="btn-icon-header" style="color:var(--danger)" onclick="deleteRecord(${item.id})"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></button>
-          </td>
-        </tr>`;
-      }
-      if(module === 'products') {
-        return `<tr>
-          <td style="font-family:monospace; color:var(--text-secondary)">${item.product_code}</td><td><div style="font-weight:600">${item.name}</div></td>
-          <td style="font-weight:600">${formatMoney(item.price)} đ</td><td>${item.stock}</td>
-          <td style="text-align:right">
-            <button type="button" class="btn-icon-header" onclick="openCrudModal(${item.id})"><i data-lucide="edit-2" style="width:16px;height:16px;"></i></button>
-            <button type="button" class="btn-icon-header" style="color:var(--danger)" onclick="deleteRecord(${item.id})"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></button>
-          </td>
-        </tr>`;
-      }
-      if(module === 'companies') {
-        return `<tr>
-          <td><div style="font-weight:600">${item.name}</div></td><td style="color:var(--text-secondary)">${item.email || '-'}</td><td>${item.phone || '-'}</td>
-          <td style="text-align:right">
-            <button type="button" class="btn-icon-header" onclick="openCrudModal(${item.id})"><i data-lucide="edit-2" style="width:16px;height:16px;"></i></button>
-            <button type="button" class="btn-icon-header" style="color:var(--danger)" onclick="deleteRecord(${item.id})"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></button>
-          </td>
-        </tr>`;
-      }
-      if(module === 'orders') {
-        let badgeClass = 'badge-pending', icon = 'clock';
-        if(item.status === 'completed') { badgeClass = 'badge-completed'; icon = 'check-circle-2'; }
-        if(item.status === 'canceled') { badgeClass = 'badge-canceled'; icon = 'x-circle'; }
-        return `<tr>
-          <td style="font-family:monospace; font-weight:600;">${item.order_code}</td><td>${item.customer?.name || '-'}</td>
-          <td style="font-weight:600">${formatMoney(item.total_price)} đ</td>
-          <td><span class="badge ${badgeClass}"><i data-lucide="${icon}"></i> ${item.status}</span></td>
-          <td style="color:var(--text-secondary)">${new Date(item.created_at).toLocaleDateString('vi-VN')}</td>
-          <td style="text-align:right">
-            <button type="button" class="btn-icon-header" style="color:var(--success)" title="Hoàn thành" onclick="updateOrderStatus(${item.id}, 'completed')"><i data-lucide="check" style="width:16px;height:16px;"></i></button>
-            <button type="button" class="btn-icon-header" style="color:var(--danger)" title="Hủy" onclick="updateOrderStatus(${item.id}, 'canceled')"><i data-lucide="x" style="width:16px;height:16px;"></i></button>
-          </td>
-        </tr>`;
-      }
+      try {
+        if (module === 'users' || module === 'customers') {
+          const badge = `badge-${item.role.toLowerCase()}`;
+          return `<tr>
+            <td><div style="font-weight:600">${item.name}</div></td><td style="color:var(--text-secondary)">${item.email}</td>
+            <td><span class="badge ${badge}"><i data-lucide="user"></i> ${item.role}</span></td>
+            <td>
+              <div style="display: flex; gap: 4px; justify-content: flex-end;">
+                <button type="button" class="btn-icon-header" onclick="openCrudModal(${item.id})"><i data-lucide="edit-2" style="width:16px;height:16px;"></i></button>
+                <button type="button" class="btn-icon-header" style="color:var(--danger)" onclick="deleteRecord(${item.id})"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></button>
+              </div>
+            </td>
+          </tr>`;
+        }
+        if (module === 'products') {
+          const imgSrc = item.image || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjZWVlIi8+PC9zdmc+';
+          return `<tr>
+            <td><img src="${imgSrc}" style="width:40px; height:40px; border-radius:8px; object-fit:cover; border:1px solid var(--border);" alt="Ảnh SP"></td>
+            <td style="font-family:monospace; color:var(--text-secondary)">${item.product_code}</td><td><div style="font-weight:600">${item.name}</div></td>
+            <td style="font-weight:600">${formatMoney(item.price)} đ</td><td>${item.stock}</td>
+            <td>
+              <div style="display: flex; gap: 4px; justify-content: flex-end;">
+                <button type="button" class="btn-icon-header" onclick="openCrudModal(${item.id})"><i data-lucide="edit-2" style="width:16px;height:16px;"></i></button>
+                <button type="button" class="btn-icon-header" style="color:var(--danger)" onclick="deleteRecord(${item.id})"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></button>
+              </div>
+            </td>
+          </tr>`;
+        }
+        if (module === 'companies') {
+          return `<tr>
+            <td><div style="font-weight:600">${item.name}</div></td><td style="color:var(--text-secondary)">${item.email || '-'}</td><td>${item.phone || '-'}</td>
+            <td>
+              <div style="display: flex; gap: 4px; justify-content: flex-end;">
+                <button type="button" class="btn-icon-header" onclick="openCrudModal(${item.id})"><i data-lucide="edit-2" style="width:16px;height:16px;"></i></button>
+                <button type="button" class="btn-icon-header" style="color:var(--danger)" onclick="deleteRecord(${item.id})"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></button>
+              </div>
+            </td>
+          </tr>`;
+        }
+        if (module === 'orders') {
+          let badgeClass = 'badge-pending', icon = 'clock';
+          if (item.status === 'completed') { badgeClass = 'badge-completed'; icon = 'check-circle-2'; }
+          if (item.status === 'canceled') { badgeClass = 'badge-canceled'; icon = 'x-circle'; }
+          return `<tr>
+            <td style="font-family:monospace; font-weight:600;">${item.order_code}</td><td>${item.customer?.name || '-'}</td>
+            <td style="font-weight:600">${formatMoney(item.total_price)} đ</td>
+            <td><span class="badge ${badgeClass}"><i data-lucide="${icon}"></i> ${item.status}</span></td>
+            <td style="color:var(--text-secondary)">${new Date(item.created_at).toLocaleDateString('vi-VN')}</td>
+            <td>
+              <div style="display: flex; gap: 4px; justify-content: flex-end;">
+                <button type="button" class="btn-icon-header" style="color:var(--success)" title="Hoàn thành" onclick="updateOrderStatus(${item.id}, 'completed')"><i data-lucide="check" style="width:16px;height:16px;"></i></button>
+                <button type="button" class="btn-icon-header" style="color:var(--danger)" title="Hủy" onclick="updateOrderStatus(${item.id}, 'canceled')"><i data-lucide="x" style="width:16px;height:16px;"></i></button>
+              </div>
+            </td>
+          </tr>`;
+        }
+      } catch (e) { console.error("Error building row:", e); }
+      return '';
     }
 
     window.filterTable = (query) => {
       query = query.toLowerCase();
       document.querySelectorAll('#data-table tbody tr').forEach(row => {
-        if(row.querySelector('.empty-state')) return;
+        if (row.querySelector('.empty-state')) return;
         const text = row.textContent.toLowerCase();
         row.style.display = text.includes(query) ? '' : 'none';
       });
@@ -374,41 +546,46 @@
       const item = id ? currentData.find(x => x.id === id) : {};
       const title = document.getElementById('crud-title');
       const body = document.getElementById('crud-body');
-      
+
       let html = '';
-      if(currentModule === 'users' || currentModule === 'customers') {
+      if (currentModule === 'users' || currentModule === 'customers') {
         title.textContent = id ? 'Cập nhật Người dùng' : 'Thêm Người dùng mới';
         html = `
-          <div class="form-group"><label>Họ tên *</label><input type="text" id="m_name" value="${item.name||''}" required></div>
-          <div class="form-group"><label>Email *</label><input type="email" id="m_email" value="${item.email||''}" required ${id?'readonly':''}></div>
-          ${!id ? `<div class="form-group"><label>Mật khẩu *</label><input type="password" id="m_pass" required></div>` : ''}
+          <div class="form-group"><label>Họ tên *</label><input type="text" id="m_name" value="${item.name || ''}" onblur="validateField('m_name', this.value)"><span class="error-msg"></span></div>
+          <div class="form-group"><label>Email *</label><input type="email" id="m_email" value="${item.email || ''}" onblur="validateField('m_email', this.value)" ${id ? 'readonly' : ''}><span class="error-msg"></span></div>
+          ${!id ? `<div class="form-group"><label>Mật khẩu *</label><input type="password" id="m_pass" onblur="validateField('m_pass', this.value)"><span class="error-msg"></span></div>` : ''}
           <div class="form-group"><label>Vai trò</label>
-            <select id="m_role" ${currentModule==='customers' ? 'disabled' : ''}>
-              <option value="CUSTOMER" ${item.role==='CUSTOMER' || currentModule==='customers' ? 'selected':''}>Khách hàng (CUSTOMER)</option>
-              <option value="MANAGER" ${item.role==='MANAGER' ? 'selected':''}>Quản lý (MANAGER)</option>
-              <option value="ADMIN" ${item.role==='ADMIN' ? 'selected':''}>Quản trị (ADMIN)</option>
+            <select id="m_role" ${currentModule === 'customers' ? 'disabled' : ''}>
+              <option value="CUSTOMER" ${item.role === 'CUSTOMER' || currentModule === 'customers' ? 'selected' : ''}>Khách hàng (CUSTOMER)</option>
+              <option value="MANAGER" ${item.role === 'MANAGER' ? 'selected' : ''}>Quản lý (MANAGER)</option>
+              <option value="ADMIN" ${item.role === 'ADMIN' ? 'selected' : ''}>Quản trị (ADMIN)</option>
             </select>
+            <span class="error-msg"></span>
           </div>
         `;
       } else if (currentModule === 'products') {
         title.textContent = id ? 'Cập nhật Sản phẩm' : 'Thêm Sản phẩm mới';
         html = `
-          <div class="form-group"><label>Mã SP *</label><input type="text" id="m_code" value="${item.product_code||''}" required></div>
-          <div class="form-group"><label>Tên Sản phẩm *</label><input type="text" id="m_name" value="${item.name||''}" required></div>
+          <div style="display:flex; gap:16px; margin-bottom:16px; align-items:center;">
+             <img src="${item.image || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCI+PHJlY3Qgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiBmaWxsPSIjZWVlIi8+PC9zdmc+'}" id="m_img_preview" style="width:60px; height:60px; border-radius:8px; object-fit:cover; border:1px solid var(--border);">
+             <div class="form-group" style="margin:0; flex:1;"><label>Hình ảnh (Base64 hoặc URL)</label><input type="text" id="m_image" value="${item.image || ''}" placeholder="Nhập URL ảnh hoặc dán Base64" oninput="document.getElementById('m_img_preview').src = this.value || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCI+PHJlY3Qgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiBmaWxsPSIjZWVlIi8+PC9zdmc+'"><span class="error-msg"></span></div>
+          </div>
+          <div class="form-group"><label>Mã SP *</label><input type="text" id="m_code" value="${item.product_code || ''}" onblur="validateField('m_code', this.value)"><span class="error-msg"></span></div>
+          <div class="form-group"><label>Tên Sản phẩm *</label><input type="text" id="m_name" value="${item.name || ''}" onblur="validateField('m_name', this.value)"><span class="error-msg"></span></div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-            <div class="form-group"><label>Đơn giá (VNĐ) *</label><input type="number" id="m_price" value="${item.price||0}" required></div>
-            <div class="form-group"><label>Tồn kho *</label><input type="number" id="m_stock" value="${item.stock||0}" required></div>
+            <div class="form-group"><label>Đơn giá (VNĐ) *</label><input type="number" id="m_price" value="${item.price || 0}"><span class="error-msg"></span></div>
+            <div class="form-group"><label>Tồn kho *</label><input type="number" id="m_stock" value="${item.stock || 0}"><span class="error-msg"></span></div>
           </div>
         `;
       } else if (currentModule === 'companies') {
         title.textContent = id ? 'Cập nhật Công ty' : 'Thêm Công ty mới';
         html = `
-          <div class="form-group"><label>Tên Công ty *</label><input type="text" id="m_name" value="${item.name||''}" required></div>
+          <div class="form-group"><label>Tên Công ty *</label><input type="text" id="m_name" value="${item.name || ''}" onblur="validateField('m_name', this.value)"><span class="error-msg"></span></div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-             <div class="form-group"><label>Email</label><input type="email" id="m_email" value="${item.email||''}"></div>
-             <div class="form-group"><label>Số điện thoại</label><input type="text" id="m_phone" value="${item.phone||''}"></div>
+             <div class="form-group"><label>Email *</label><input type="email" id="m_email" value="${item.email || ''}" onblur="validateField('m_email', this.value)"><span class="error-msg"></span></div>
+             <div class="form-group"><label>Số điện thoại *</label><input type="text" id="m_phone" value="${item.phone || ''}" onblur="validateField('m_phone', this.value)"><span class="error-msg"></span></div>
           </div>
-          <div class="form-group"><label>Địa chỉ</label><textarea id="m_addr" rows="2">${item.address||''}</textarea></div>
+          <div class="form-group"><label>Địa chỉ *</label><textarea id="m_addr" rows="2" onblur="validateField('m_addr', this.value)">${item.address || ''}</textarea><span class="error-msg"></span></div>
         `;
       }
 
@@ -416,62 +593,141 @@
       document.getElementById('crud-modal').classList.add('show');
     };
 
-    window.closeCrudModal = () => document.getElementById('crud-modal').classList.remove('show');
+    window.closeCrudModal = () => {
+      document.getElementById('crud-modal').classList.remove('show');
+      document.getElementById('crud-form').reset();
+      // Clear errors
+      document.querySelectorAll('#crud-body .error-msg').forEach(el => el.textContent = '');
+      document.querySelectorAll('#crud-body .error').forEach(el => el.classList.remove('error'));
+    };
 
     window.handleCrudSubmit = async (e) => {
       e.preventDefault();
+
+      // Full Validation before submit
+      let isValid = true;
+      let firstErrorField = null;
+      const inputs = document.querySelectorAll('#crud-body input, #crud-body textarea');
+
+      inputs.forEach(input => {
+        if (!validateField(input.id, input.value)) {
+          isValid = false;
+          if (!firstErrorField) firstErrorField = input;
+        }
+      });
+
+      if (!isValid) {
+        if (firstErrorField) firstErrorField.focus();
+        showToast('Vui lòng kiểm tra lại thông tin', 'error');
+        return;
+      }
+
       const btn = document.getElementById('crud-submit');
-      const originalText = btn.innerHTML;
-      btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" class="spin"></i> Đang lưu...';
+      const originalContent = btn.innerHTML;
+
+      // Loading State
+      btn.disabled = true;
+      btn.innerHTML = '<i data-lucide="loader-2" class="spin"></i> Đang lưu...';
       lucide.createIcons();
-      
+
       try {
         let payload = {};
         let endpoint = `/${currentModule === 'customers' ? 'users' : currentModule}`;
         let method = currentEditId ? 'PUT' : 'POST';
-        if(currentEditId) endpoint += `/${currentEditId}`;
+        if (currentEditId) endpoint += `/${currentEditId}`;
 
-        if(currentModule === 'users' || currentModule === 'customers') {
+        if (currentModule === 'users' || currentModule === 'customers') {
           payload = { name: document.getElementById('m_name').value, role: document.getElementById('m_role').value };
-          if(!currentEditId) {
+          if (!currentEditId) {
             payload.email = document.getElementById('m_email').value;
             payload.password = document.getElementById('m_pass').value;
             endpoint = '/auth/register'; method = 'POST';
           }
         } else if (currentModule === 'products') {
-          payload = { product_code: document.getElementById('m_code').value, name: document.getElementById('m_name').value, price: document.getElementById('m_price').value, stock: document.getElementById('m_stock').value };
+          payload = {
+            product_code: document.getElementById('m_code').value,
+            name: document.getElementById('m_name').value,
+            price: document.getElementById('m_price').value,
+            stock: document.getElementById('m_stock').value,
+            image: document.getElementById('m_image') ? document.getElementById('m_image').value : null
+          };
         } else if (currentModule === 'companies') {
-          payload = { name: document.getElementById('m_name').value, email: document.getElementById('m_email').value, phone: document.getElementById('m_phone').value, address: document.getElementById('m_addr').value };
+          payload = {
+            name: document.getElementById('m_name').value,
+            email: document.getElementById('m_email').value,
+            phone: normalizePhone(document.getElementById('m_phone').value),
+            address: document.getElementById('m_addr').value
+          };
         }
 
-        await fetchAPI(endpoint, { method, body: JSON.stringify(payload) });
-        showToast(currentEditId ? 'Cập nhật thành công!' : 'Thêm mới thành công!');
+        const data = await fetchAPI(endpoint, { method, body: JSON.stringify(payload) });
+
+        // Success Feedback & Immediate UI Update
+        if (currentEditId) {
+          const index = currentData.findIndex(x => x.id === currentEditId);
+          if (index !== -1) currentData[index] = data;
+          showToast('Cập nhật thành công!');
+        } else {
+          if (!(currentModule === 'customers' && data.role !== 'CUSTOMER')) {
+            currentData.unshift(data);
+          }
+          showToast('Thêm mới thành công!');
+        }
+
+        // Robust UI Update & Close
+        renderTableBody(data ? data.id : null);
         closeCrudModal();
-        loadView(currentModule);
-      } catch(err) {
-        showToast(err.message, 'error');
+
+        if (!currentEditId) {
+          document.getElementById('main-content').scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+      } catch (err) {
+        console.error("Submit error:", err);
+        showToast(err.message || 'Có lỗi xảy ra, vui lòng thử lại', 'error');
       } finally {
-        btn.disabled = false; btn.innerHTML = originalText;
+        btn.disabled = false;
+        btn.innerHTML = originalContent;
         lucide.createIcons();
       }
     };
 
     window.deleteRecord = async (id) => {
-      if(!confirm('Bạn có chắc muốn xóa bản ghi này? Thao tác không thể phục hồi.')) return;
-      try {
-        let endpoint = `/${currentModule === 'customers' ? 'users' : currentModule}/${id}`;
-        await fetchAPI(endpoint, { method: 'DELETE' });
-        showToast('Đã xóa thành công!');
-        loadView(currentModule);
-      } catch(err) { showToast(err.message, 'error'); }
+      showConfirm(
+        'Xác nhận xóa?',
+        'Bạn có chắc chắn muốn xóa bản ghi này? Dữ liệu sẽ bị xóa vĩnh viễn khỏi hệ thống.',
+        async () => {
+          try {
+            let endpoint = `/${currentModule === 'customers' ? 'users' : currentModule}/${id}`;
+            await fetchAPI(endpoint, { method: 'DELETE' });
+
+            // Immediate UI Update
+            currentData = currentData.filter(x => x.id !== id);
+            renderTableBody();
+
+            showToast('Đã xóa dữ liệu thành công!');
+          } catch (err) {
+            showToast(err.message || 'Không thể xóa dữ liệu', 'error');
+          }
+        }
+      );
     };
 
     window.updateOrderStatus = async (id, status) => {
       try {
-        await fetchAPI(`/orders/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) });
-        showToast(`Cập nhật trạng thái thành công`);
-        loadView('orders');
-      } catch (err) { showToast(err.message, 'error'); }
+        const updatedOrder = await fetchAPI(`/orders/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) });
+
+        // Immediate UI Update
+        const index = currentData.findIndex(x => x.id === id);
+        if (index !== -1) {
+          currentData[index] = updatedOrder;
+          renderTableBody(id);
+        }
+
+        showToast(`Đã chuyển trạng thái đơn hàng sang ${status.toUpperCase()}!`);
+      } catch (err) {
+        showToast(err.message || 'Lỗi khi cập nhật trạng thái', 'error');
+      }
     };
 
     // ==========================================
@@ -485,8 +741,11 @@
           <td style="color:var(--text-secondary)">${new Date(q.date).toLocaleDateString('vi-VN')}</td>
           <td style="font-weight:600">${formatMoney(q.totalAmount)} đ</td>
           <td style="text-align:right">
-            <button type="button" class="btn-icon-header" onclick="loadView('quotation_form', '${q.id}')"><i data-lucide="edit-2" style="width:16px;height:16px;"></i></button>
-            <button type="button" class="btn-icon-header" style="color:var(--danger)" onclick="deleteQuote('${q.id}')"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></button>
+            <div style="display:flex; justify-content:flex-end; gap:4px;">
+              <button type="button" class="btn-icon-header" onclick="previewQuoteFromList('${q.id}')" title="Xem trước báo giá"><i data-lucide="eye" style="width:16px;height:16px;"></i></button>
+              <button type="button" class="btn-icon-header" onclick="loadView('quotation_form', '${q.id}')" title="Chỉnh sửa"><i data-lucide="edit-2" style="width:16px;height:16px;"></i></button>
+              <button type="button" class="btn-icon-header" style="color:var(--danger)" onclick="deleteQuote('${q.id}')" title="Xoá"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></button>
+            </div>
           </td>
         </tr>
       `).join('') : `<tr><td colspan="5"><div class="empty-state"><div class="empty-icon"><i data-lucide="file-text"></i></div><h3>Chưa có báo giá</h3><p style="color:var(--text-secondary)">Bắt đầu bằng cách tạo báo giá đầu tiên.</p></div></td></tr>`;
@@ -512,25 +771,48 @@
     }
 
     window.deleteQuote = (id) => {
-      if(confirm(`Xóa báo giá ${id}?`)) {
-        quotes = quotes.filter(q => q.id !== id);
-        localStorage.setItem('crm_quotes', JSON.stringify(quotes));
-        showToast('Đã xóa báo giá!');
-        loadView('quotation');
-      }
+      showConfirm(
+        'Xóa Báo giá?',
+        `Bạn có chắc muốn xóa báo giá ${id}?`,
+        () => {
+          quotes = quotes.filter(q => q.id !== id);
+          localStorage.setItem('crm_quotes', JSON.stringify(quotes));
+          showToast('Đã xóa báo giá khỏi trình duyệt!');
+          loadView('quotation');
+        }
+      );
     };
 
     async function renderQuotationForm(container, quoteId) {
-      const currentQuoteId = quoteId || `BG-ITS-${new Date().toISOString().slice(2,10).replace(/-/g,'')}-${Math.floor(Math.random()*1000).toString().padStart(3,'0')}`;
+      let newQuoteId = '01ITS-2026';
+      if (!quoteId) {
+        const year = new Date().getFullYear();
+        let maxNum = 0;
+        quotes.forEach(q => {
+          const match = q.id.match(/^(\d+)ITS-(\d{4})$/);
+          if (match && parseInt(match[2]) === year) {
+            const num = parseInt(match[1]);
+            if (num > maxNum) maxNum = num;
+          }
+        });
+        newQuoteId = `${String(maxNum + 1).padStart(2, '0')}ITS-${year}`;
+      }
+      const currentQuoteId = quoteId || newQuoteId;
       window.currentQuoteIdTemp = currentQuoteId;
       const q = quoteId ? quotes.find(x => x.id === quoteId) : null;
-      
+
       let ordersHtml = '<option value="">-- Chọn đơn hàng để tự động điền --</option>';
+      let companiesHtml = '<option value="">-- Chọn công ty để tự động điền --</option>';
       try {
-        const orders = await fetchAPI('/orders');
+        const [orders, companies] = await Promise.all([
+          fetchAPI('/orders'),
+          fetchAPI('/companies')
+        ]);
         window.tempOrders = orders;
+        window.tempCompanies = companies;
         orders.forEach(o => { ordersHtml += `<option value="${o.id}">${o.order_code} - ${o.customer?.name || 'Khách'}</option>`; });
-      } catch(e) {}
+        companies.forEach(c => { companiesHtml += `<option value="${c.id}">${c.name}</option>`; });
+      } catch (e) { }
 
       container.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:24px;">
@@ -546,17 +828,26 @@
         </div>
 
         <div class="card" style="padding:24px; margin-bottom:24px;">
-          <div style="padding:16px; background:rgba(99,102,241,0.05); border:1px solid rgba(99,102,241,0.2); border-radius:12px; margin-bottom:24px;">
-            <div style="font-size:12px; font-weight:700; color:#818cf8; margin-bottom:8px; text-transform:uppercase; display:flex; align-items:center; gap:6px;"><i data-lucide="zap" style="width:14px;height:14px;"></i> IMPORT NHANH TỪ ĐƠN HÀNG</div>
-            <select class="form-group" style="margin:0; width:100%; border:none; background:rgba(0,0,0,0.3); color:white; padding:10px 14px; border-radius:8px; outline:none; font-family:inherit;" onchange="importOrderData(this.value)">
-              ${ordersHtml}
-            </select>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; padding:16px; background:rgba(99,102,241,0.05); border:1px solid rgba(99,102,241,0.2); border-radius:12px; margin-bottom:24px;">
+            <div>
+              <div style="font-size:11px; font-weight:700; color:#818cf8; margin-bottom:6px; text-transform:uppercase; display:flex; align-items:center; gap:6px;"><i data-lucide="zap" style="width:14px;height:14px;"></i> NHẬP TỪ ĐƠN HÀNG</div>
+              <select class="form-group" style="margin:0; width:100%; border:none; background:rgba(0,0,0,0.3); color:white; padding:10px 14px; border-radius:8px; outline:none; font-family:inherit; font-size:13px;" onchange="importOrderData(this.value)">
+                ${ordersHtml}
+              </select>
+            </div>
+            <div>
+              <div style="font-size:11px; font-weight:700; color:#818cf8; margin-bottom:6px; text-transform:uppercase; display:flex; align-items:center; gap:6px;"><i data-lucide="building-2" style="width:14px;height:14px;"></i> NHẬP TỪ CÔNG TY</div>
+              <select class="form-group" style="margin:0; width:100%; border:none; background:rgba(0,0,0,0.3); color:white; padding:10px 14px; border-radius:8px; outline:none; font-family:inherit; font-size:13px;" onchange="importCompanyData(this.value)">
+                ${companiesHtml}
+              </select>
+            </div>
           </div>
 
-          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-bottom:24px;">
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:16px; margin-bottom:24px;">
             <div class="form-group" style="margin:0"><label>Khách Hàng / Đơn vị *</label><input type="text" id="q_customer" value="${q?.customer || ''}" required></div>
             <div class="form-group" style="margin:0"><label>Người nhận</label><input type="text" id="q_receiver" value="${q?.receiver || ''}"></div>
             <div class="form-group" style="margin:0"><label>Số điện thoại</label><input type="text" id="q_phone" value="${q?.phone || ''}"></div>
+            <div class="form-group" style="margin:0"><label>Email</label><input type="email" id="q_email" value="${q?.email || ''}"></div>
             <div class="form-group" style="margin:0"><label>Ngày báo giá</label><input type="date" id="q_date" value="${q?.date || new Date().toISOString().split('T')[0]}"></div>
           </div>
           <div class="form-group"><label>Địa chỉ</label><input type="text" id="q_address" value="${q?.address || ''}"></div>
@@ -566,11 +857,12 @@
           <div style="overflow-x:auto;">
             <table style="width:100%; min-width:800px; margin-bottom:16px;" id="items-table">
               <thead><tr>
-                <th style="width:25%">Sản phẩm</th>
-                <th style="width:25%">Nội dung</th>
-                <th style="width:10%">ĐVT</th>
+                <th style="width:10%; text-align:center;">Ảnh</th>
+                <th style="width:20%">Sản phẩm</th>
+                <th style="width:20%">Nội dung</th>
+                <th style="width:8%">ĐVT</th>
                 <th style="width:10%">S.Lượng</th>
-                <th style="width:15%">Đơn giá (đ)</th>
+                <th style="width:12%">Đơn giá (đ)</th>
                 <th style="width:15%; text-align:right">Thành tiền</th>
                 <th style="width:5%"></th>
               </tr></thead>
@@ -578,9 +870,13 @@
             </table>
           </div>
           
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px; padding:16px; background:rgba(0,0,0,0.2); border-radius:12px; border:1px solid var(--border);">
+          <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:16px; padding:16px; background:rgba(0,0,0,0.2); border-radius:12px; border:1px solid var(--border);">
             <button type="button" class="btn btn-ghost" style="border-style:dashed;" onclick="addBlankRow()"><i data-lucide="plus"></i> Thêm dòng</button>
-            <div style="font-size:20px; font-weight:700;">Tổng cộng: <span id="q_total_display" style="color:var(--success)">0</span> đ</div>
+            <div style="text-align:right;">
+              <div style="font-size:14px; margin-bottom:4px; color:var(--text-secondary);">Cộng tiền hàng: <span id="q_subtotal_display" style="font-weight:600; color:white;">0</span> đ</div>
+              <div style="font-size:14px; margin-bottom:8px; color:var(--text-secondary);">Thuế VAT (8%): <span id="q_vat_display" style="font-weight:600; color:white;">0</span> đ</div>
+              <div style="font-size:20px; font-weight:700;">Tổng thanh toán: <span id="q_total_display" style="color:var(--success)">0</span> đ</div>
+            </div>
           </div>
 
           <div class="form-group" style="margin-top:24px;">
@@ -595,34 +891,53 @@
         </div>
       `;
 
-      if(q && q.items) q.items.forEach(i => addBlankRow(i.name, i.content, i.unit, i.qty, i.price));
+      if (q && q.items) q.items.forEach(i => addBlankRow(i.name, i.content, i.unit, i.qty, i.price, i.image));
       else addBlankRow();
       calcTotal();
     }
 
     window.importOrderData = (orderId) => {
-      if(!orderId) return;
+      if (!orderId) return;
       const order = window.tempOrders.find(o => o.id == orderId);
-      if(!order) return;
+      if (!order) return;
       document.getElementById('q_customer').value = order.customer?.name || '';
-      if(document.getElementById('q_phone') && order.customer?.phone) document.getElementById('q_phone').value = order.customer.phone;
-      if(document.getElementById('q_address') && order.customer?.address) document.getElementById('q_address').value = order.customer.address;
-      
+      if (document.getElementById('q_phone') && order.customer?.phone) document.getElementById('q_phone').value = order.customer.phone;
+      if (document.getElementById('q_address') && order.customer?.address) document.getElementById('q_address').value = order.customer.address;
+
       const tbody = document.getElementById('items-body'); tbody.innerHTML = '';
-      if(order.details?.length > 0) order.details.forEach(d => addBlankRow(d.product?.name||'', d.product?.product_code||'', 'Cái', d.quantity, parseFloat(d.price)));
+      if (order.details?.length > 0) order.details.forEach(d => addBlankRow(d.product?.name || '', d.product?.product_code || '', 'Cái', d.quantity, parseFloat(d.price), d.product?.image || ''));
       else addBlankRow();
       calcTotal(); showToast('Đã điền dữ liệu từ đơn hàng!');
     };
 
-    window.addBlankRow = (name='', content='', unit='Cái', qty=1, price=0) => {
+    window.importCompanyData = (companyId) => {
+      if (!companyId) return;
+      const company = window.tempCompanies.find(c => c.id == companyId);
+      if (!company) return;
+      document.getElementById('q_customer').value = company.name || '';
+      if (document.getElementById('q_phone')) document.getElementById('q_phone').value = company.phone || '';
+      if (document.getElementById('q_email')) document.getElementById('q_email').value = company.email || '';
+      if (document.getElementById('q_address')) document.getElementById('q_address').value = company.address || '';
+      showToast('Đã điền thông tin công ty!');
+    };
+
+    window.addBlankRow = (name = '', content = '', unit = 'Cái', qty = 1, price = 0, image = '') => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
+        <td style="padding:8px; text-align:center; position:relative;">
+          <label style="cursor:pointer; display:inline-block; position:relative;" title="Nhấn để tải ảnh lên">
+            <img src="${image || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjZWVlIi8+PC9zdmc+'}" class="i-img-preview" style="width:40px; height:40px; border-radius:4px; object-fit:cover; border:1px solid var(--border);">
+            <input type="file" style="display:none;" accept="image/*" onchange="const img = this.parentElement.querySelector('.i-img-preview'); const hidden = this.parentElement.querySelector('.i-image'); const reader = new FileReader(); reader.onload = e => { img.src = e.target.result; hidden.value = e.target.result; }; if(this.files[0]) reader.readAsDataURL(this.files[0]);">
+            <input type="hidden" class="i-image" value="${image}">
+            <button type="button" onclick="event.preventDefault(); event.stopPropagation(); this.previousElementSibling.value=''; this.previousElementSibling.previousElementSibling.previousElementSibling.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjZWVlIi8+PC9zdmc+';" style="position:absolute; top:-5px; right:-5px; background:var(--danger); color:white; border:none; border-radius:50%; width:16px; height:16px; font-size:10px; cursor:pointer; display:flex; align-items:center; justify-content:center;">&times;</button>
+          </label>
+        </td>
         <td style="padding:8px"><input type="text" class="i-name form-group" style="margin:0; width:100%; padding:8px; border-radius:6px; background:rgba(255,255,255,0.03); border:1px solid var(--border); color:white; outline:none;" value="${name}"></td>
         <td style="padding:8px"><input type="text" class="i-content" style="margin:0; width:100%; padding:8px; border-radius:6px; background:rgba(255,255,255,0.03); border:1px solid var(--border); color:white; outline:none;" value="${content}"></td>
         <td style="padding:8px"><input type="text" class="i-unit" style="margin:0; width:100%; padding:8px; border-radius:6px; background:rgba(255,255,255,0.03); border:1px solid var(--border); color:white; outline:none; text-align:center;" value="${unit}"></td>
         <td style="padding:8px"><input type="number" class="i-qty" style="margin:0; width:100%; padding:8px; border-radius:6px; background:rgba(255,255,255,0.03); border:1px solid var(--border); color:white; outline:none; text-align:center;" min="1" value="${qty}" oninput="calcRow(this)"></td>
         <td style="padding:8px"><input type="text" class="i-price" style="margin:0; width:100%; padding:8px; border-radius:6px; background:rgba(255,255,255,0.03); border:1px solid var(--border); color:white; outline:none; text-align:right;" value="${formatMoney(price)}" oninput="formatInputMoney(this); calcRow(this)"></td>
-        <td style="padding:8px"><input type="text" class="i-total" style="margin:0; width:100%; padding:8px; border:none; background:transparent; color:var(--success); font-weight:600; text-align:right; outline:none;" value="${formatMoney(qty*price)}" readonly></td>
+        <td style="padding:8px"><input type="text" class="i-total" style="margin:0; width:100%; padding:8px; border:none; background:transparent; color:var(--success); font-weight:600; text-align:right; outline:none;" value="${formatMoney(qty * price)}" readonly></td>
         <td style="padding:8px; text-align:center"><button type="button" class="btn-icon-header" style="color:var(--danger); margin:0 auto;" onclick="this.closest('tr').remove(); calcTotal()"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></button></td>
       `;
       document.getElementById('items-body').appendChild(tr);
@@ -630,32 +945,32 @@
     };
 
     window.formatInputMoney = (input) => { let v = input.value.replace(/[^0-9]/g, ''); input.value = v ? parseFloat(v).toLocaleString('vi-VN') : ''; };
-    window.calcRow = (el) => { const tr = el.closest('tr'); const qty = parseFloat(tr.querySelector('.i-qty').value)||0; const price = parseMoney(tr.querySelector('.i-price').value); tr.querySelector('.i-total').value = formatMoney(qty*price); calcTotal(); };
-    window.calcTotal = () => { let sum = 0; document.querySelectorAll('.i-total').forEach(i => sum += parseMoney(i.value)); document.getElementById('q_total_display').textContent = formatMoney(sum); return sum; };
+    window.calcRow = (el) => { const tr = el.closest('tr'); const qty = parseFloat(tr.querySelector('.i-qty').value) || 0; const price = parseMoney(tr.querySelector('.i-price').value); tr.querySelector('.i-total').value = formatMoney(qty * price); calcTotal(); };
+    window.calcTotal = () => { let sum = 0; document.querySelectorAll('.i-total').forEach(i => sum += parseMoney(i.value)); const vat = sum * 0.08; const finalTotal = sum + vat; if (document.getElementById('q_subtotal_display')) document.getElementById('q_subtotal_display').textContent = formatMoney(sum); if (document.getElementById('q_vat_display')) document.getElementById('q_vat_display').textContent = formatMoney(vat); document.getElementById('q_total_display').textContent = formatMoney(finalTotal); return finalTotal; };
 
     window.handleExcelImport = (e) => {
       const file = e.target.files[0];
-      if(!file) return;
-      
+      if (!file) return;
+
       const reader = new FileReader();
       reader.onload = (ev) => {
         try {
           const data = new Uint8Array(ev.target.result);
-          const workbook = XLSX.read(data, {type: 'array'});
+          const workbook = XLSX.read(data, { type: 'array' });
           const firstSheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[firstSheetName];
-          const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
-          
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
           if (jsonData.length < 2) return showToast('File Excel không có dữ liệu', 'error');
 
           // Mapping: STT | Tên sản phẩm | Nội dung | ĐVT | Số lượng | Đơn giá | Thành tiền
           const rows = jsonData.slice(1);
           const tbody = document.getElementById('items-body');
           tbody.innerHTML = '';
-          
+
           let importCount = 0;
           rows.forEach(row => {
-            if(!row[1]) return; // Skip if no product name
+            if (!row[1]) return; // Skip if no product name
             const name = row[1] || '';
             const content = row[2] || '';
             const unit = row[3] || 'Cái';
@@ -664,7 +979,7 @@
             addBlankRow(name, content, unit, qty, price);
             importCount++;
           });
-          
+
           calcTotal();
           showToast(`Đã import ${importCount} sản phẩm thành công!`);
           e.target.value = ''; // Reset input
@@ -676,45 +991,64 @@
     };
 
     window.saveQuote = async () => {
+      const btn = document.querySelector('button[onclick="saveQuote()"]');
+      const originalContent = btn.innerHTML;
+
       const customer = document.getElementById('q_customer').value.trim();
-      if(!customer) return showToast('Vui lòng nhập Khách hàng', 'error');
+      if (!customer) return showToast('Vui lòng nhập Khách hàng', 'error');
+
       const items = [];
       document.querySelectorAll('#items-body tr').forEach(tr => {
         const name = tr.querySelector('.i-name').value.trim();
-        if(name) items.push({ 
-          name, 
-          content: tr.querySelector('.i-content').value.trim(), 
-          unit: tr.querySelector('.i-unit').value.trim(), 
-          qty: parseFloat(tr.querySelector('.i-qty').value)||0, 
-          price: parseMoney(tr.querySelector('.i-price').value), 
-          total: parseMoney(tr.querySelector('.i-total').value) 
+        if (name) items.push({
+          name,
+          content: tr.querySelector('.i-content').value.trim(),
+          unit: tr.querySelector('.i-unit').value.trim(),
+          qty: parseFloat(tr.querySelector('.i-qty').value) || 0,
+          price: parseMoney(tr.querySelector('.i-price').value),
+          total: parseMoney(tr.querySelector('.i-total').value),
+          image: tr.querySelector('.i-image') ? tr.querySelector('.i-image').value : ''
         });
       });
-      if(!items.length) return showToast('Cần ít nhất 1 sản phẩm', 'error');
+      if (!items.length) return showToast('Cần ít nhất 1 sản phẩm', 'error');
 
-      const totalAmount = calcTotal();
-      const quoteData = { 
-        id: window.currentQuoteIdTemp, 
-        customer, 
-        receiver: document.getElementById('q_receiver').value.trim(), 
-        address: document.getElementById('q_address').value.trim(), 
-        phone: document.getElementById('q_phone').value.trim(), 
-        date: document.getElementById('q_date').value, 
-        terms: document.getElementById('q_terms').value, 
-        items, 
-        totalAmount 
-      };
-      
-      const idx = quotes.findIndex(q => q.id === window.currentQuoteIdTemp);
-      if(idx >= 0) quotes[idx] = quoteData; else quotes.unshift(quoteData);
+      // Loading state
+      btn.disabled = true;
+      btn.innerHTML = '<i data-lucide="loader-2" class="spin"></i> Đang lưu...';
+      lucide.createIcons();
 
-      localStorage.setItem('crm_quotes', JSON.stringify(quotes));
-      
-      // Sync to Orders module
-      await syncToOrder(quoteData);
-      
-      showToast('Đã lưu Báo giá và đồng bộ sang Đơn hàng!'); 
-      loadView('quotation');
+      try {
+        const totalAmount = calcTotal();
+        const quoteData = {
+          id: window.currentQuoteIdTemp,
+          customer,
+          receiver: document.getElementById('q_receiver').value.trim(),
+          address: document.getElementById('q_address').value.trim(),
+          phone: document.getElementById('q_phone').value.trim(),
+          email: document.getElementById('q_email').value.trim(),
+          date: document.getElementById('q_date').value,
+          terms: document.getElementById('q_terms').value,
+          items,
+          totalAmount
+        };
+
+        const idx = quotes.findIndex(q => q.id === window.currentQuoteIdTemp);
+        if (idx >= 0) quotes[idx] = quoteData; else quotes.unshift(quoteData);
+
+        localStorage.setItem('crm_quotes', JSON.stringify(quotes));
+
+        // Sync to Orders module
+        await syncToOrder(quoteData);
+
+        showToast('Đã lưu Báo giá và đồng bộ sang Đơn hàng!');
+        loadView('quotation');
+      } catch (err) {
+        showToast('Lỗi khi lưu hoặc đồng bộ báo giá', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalContent;
+        lucide.createIcons();
+      }
     };
 
     async function syncToOrder(quoteData) {
@@ -722,7 +1056,7 @@
         // Optional: Find customer_id by name from existing users/customers
         // For this demo, we'll try to find an admin or user just to satisfy the model
         // but typically we'd look up the customer table.
-        
+
         const orderPayload = {
           customer_name_manual: quoteData.customer, // Custom field if needed
           total_price: quoteData.totalAmount,
@@ -752,112 +1086,371 @@
       const customer = document.getElementById('q_customer').value.trim();
       const receiver = document.getElementById('q_receiver').value.trim();
       const phone = document.getElementById('q_phone').value.trim();
+      const email = document.getElementById('q_email').value.trim();
       const address = document.getElementById('q_address').value.trim();
       const date = document.getElementById('q_date').value;
       const terms = document.getElementById('q_terms').value;
-      
+
       const items = [];
       document.querySelectorAll('#items-body tr').forEach(tr => {
-        const name = tr.querySelector('.i-name').value.trim();
-        if(name) items.push({ 
-          name, 
-          content: tr.querySelector('.i-content').value.trim(), 
-          unit: tr.querySelector('.i-unit').value.trim(), 
-          qty: parseFloat(tr.querySelector('.i-qty').value)||0, 
-          price: parseMoney(tr.querySelector('.i-price').value), 
-          total: parseMoney(tr.querySelector('.i-total').value) 
-        });
+        const nameInput = tr.querySelector('.i-name');
+        if (nameInput && nameInput.value.trim()) {
+          items.push({
+            name: nameInput.value.trim(),
+            content: tr.querySelector('.i-content').value.trim(),
+            unit: tr.querySelector('.i-unit').value.trim(),
+            qty: parseFloat(tr.querySelector('.i-qty').value) || 0,
+            price: parseMoney(tr.querySelector('.i-price').value),
+            total: parseMoney(tr.querySelector('.i-total').value),
+            image: tr.querySelector('.i-image') ? tr.querySelector('.i-image').value : ''
+          });
+        }
       });
 
-      if(!customer) return showToast('Vui lòng nhập Khách hàng để xem trước', 'error');
+      if (!customer) return showToast('Vui lòng nhập Khách hàng để xem trước', 'error');
 
       const printArea = document.getElementById('print-area');
+      const totalAmount = calcTotal();
+      let sum = 0; items.forEach(i => sum += i.total);
+      let vatAmount = sum * 0.08;
+
       let itemsRows = '';
       items.forEach((item, index) => {
         itemsRows += `
           <tr>
-            <td style="border: 1px solid #000; padding: 8px; text-align: center;">${index + 1}</td>
-            <td style="border: 1px solid #000; padding: 8px;"><b>${item.name}</b><br><small>${item.content}</small></td>
-            <td style="border: 1px solid #000; padding: 8px; text-align: center;">${item.unit}</td>
-            <td style="border: 1px solid #000; padding: 8px; text-align: center;">${item.qty}</td>
-            <td style="border: 1px solid #000; padding: 8px; text-align: right;">${formatMoney(item.price)}</td>
-            <td style="border: 1px solid #000; padding: 8px; text-align: right;">${formatMoney(item.total)}</td>
+            <td style="text-align: center;">${index + 1}</td>
+            <td style="text-align: center;">${item.image ? `<img src="${item.image}" style="max-width:50px; max-height:50px; object-fit:contain; border-radius:4px;">` : ''}</td>
+            <td><b style="display:block; margin-bottom:2px;">${item.name}</b><span style="font-size:11px;">${item.content}</span></td>
+            <td style="text-align: center;">${item.unit}</td>
+            <td style="text-align: center;">${item.qty}</td>
+            <td style="text-align: right;">${formatMoney(item.price)}</td>
+            <td style="text-align: right;">${formatMoney(item.total)}</td>
           </tr>
         `;
       });
 
-      const totalAmount = calcTotal();
+      const htmlContent = `
+        <style>
+          .quote-print-container { 
+            color: #000 !important; 
+            background: #fff !important;
+            font-family: 'Times New Roman', Times, serif; 
+            padding: 40px;
+            box-sizing: border-box;
+          }
+          .quote-print-container * { 
+            color: #000 !important; 
+            border-color: #000 !important; 
+          }
+          .quote-print-container table { 
+            width: 100%; 
+            border-collapse: collapse !important; 
+            margin-top: 20px;
+            margin-bottom: 20px; 
+          }
+          .quote-print-container th, .quote-print-container td { 
+            border: 1px solid #000 !important; 
+            padding: 8px !important; 
+            color: #000 !important;
+          }
+          .quote-print-container th { 
+            background: #f2f2f2 !important; 
+            font-weight: bold !important; 
+            text-transform: uppercase;
+            font-size: 12px;
+          }
+          .quote-print-container td { font-size: 13px; }
+        </style>
+        <div class="quote-print-container">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 15px;">
+            <div style="width: 140px;">
+              <img src="/logo.png" alt="Logo" style="max-width: 100%; height: auto;">
+            </div>
+            <div style="text-align: right; flex: 1; padding-left: 30px;">
+              <h2 style="margin: 0; font-size: 15px; font-weight: 800; text-transform: uppercase;">CÔNG TY TNHH GIẢI PHÁP CÔNG NGHỆ LONG AN</h2>
+              <p style="margin: 2px 0; font-size: 11px; line-height: 1.4;">
+                ĐỊA CHỈ: 15/8 TRƯƠNG VĂN BANG, KP3, XÃ CẦN GIUỘC, TỈNH TÂY NINH<br>
+                ĐT: 0272.373.1369 - MST: 1101 864 671<br>
+                WEBSITE: WWW.ITSLONGAN.COM - EMAIL: ITSLONGAN@GMAIL.COM
+              </p>
+            </div>
+          </div>
 
-      printArea.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; border-bottom: 2px solid #333; padding-bottom: 20px;">
-          <div style="display: flex; align-items: center; gap: 15px;">
-            <div style="width: 50px; height: 50px; background: #6366f1; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white;">
-              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          <!-- Title -->
+          <div style="text-align: center; margin-bottom: 25px;">
+            <h1 style="margin: 0; font-size: 26px; letter-spacing: 4px; font-weight: 900; text-transform: uppercase;">BÁO GIÁ</h1>
+            <p style="margin: 5px 0 0; font-size: 14px; font-style: italic;">Cung cấp thiết bị và dịch vụ</p>
+          </div>
+
+          <!-- Info Sections -->
+          <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 40px; margin-bottom: 20px; line-height: 1.4; font-size: 12px;">
+            <!-- Left Side: Customer Info -->
+            <div style="display: grid; grid-template-columns: 80px 1fr; gap: 4px;">
+              <div style="font-weight: bold;">Kính gửi:</div>
+              <div style="font-weight: bold; text-transform: uppercase;">${customer}</div>
+              
+              <div>Địa chỉ:</div>
+              <div>${address || 'N/A'}</div>
+              
+              <div>Người nhận:</div>
+              <div>${receiver || customer}</div>
+              
+              <div>Số điện thoại:</div>
+              <div>${phone || 'N/A'}</div>
+              
+              <div>Email:</div>
+              <div>${email || 'N/A'}</div>
+            </div>
+
+            <!-- Right Side: Quote Metadata -->
+            <div style="display: flex; justify-content: flex-end;">
+              <div style="display: grid; grid-template-columns: max-content max-content; gap: 4px 8px;">
+                <div style="text-align: right;">Báo giá số:</div>
+                <div style="font-weight: bold; text-align: left;">${window.currentQuoteIdTemp}</div>
+                
+                <div style="text-align: right;">Ngày báo giá:</div>
+                <div style="text-align: left;">${new Date(date).toLocaleDateString('vi-VN')}</div>
+                
+                <div style="text-align: right;">Người lập:</div>
+                <div style="text-align: left;">P. Kinh Doanh</div>
+                
+                <div style="text-align: right;">Số điện thoại:</div>
+                <div style="text-align: left;">0903 159 101</div>
+                
+                <div style="text-align: right;">Email:</div>
+                <div style="text-align: left; color: #000;">kd2@itslongan.com</div>
+              </div>
+            </div>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 40px; text-align: center;">STT</th>
+                <th style="width: 70px; text-align: center;">HÌNH ẢNH</th>
+                <th style="text-align: left;">CHI TIẾT SẢN PHẨM / NỘI DUNG CÔNG VIỆC</th>
+                <th style="width: 50px; text-align: center;">ĐVT</th>
+                <th style="width: 50px; text-align: center;">SL</th>
+                <th style="width: 100px; text-align: right;">ĐƠN GIÁ</th>
+                <th style="width: 110px; text-align: right;">THÀNH TIỀN</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsRows}
+              <tr>
+                <td colspan="6" style="text-align: right; font-size: 13px; font-weight: bold;">CỘNG TIỀN HÀNG</td>
+                <td style="text-align: right; font-size: 14px; font-weight: bold;">${formatMoney(sum)}</td>
+              </tr>
+              <tr>
+                <td colspan="6" style="text-align: right; font-size: 13px; font-weight: bold;">THUẾ SUẤT GTGT (8%)</td>
+                <td style="text-align: right; font-size: 14px; font-weight: bold;">${formatMoney(vatAmount)}</td>
+              </tr>
+              <tr>
+                <td colspan="6" style="text-align: right; font-size: 13px; font-weight: bold;">TỔNG CỘNG THANH TOÁN (VNĐ)</td>
+                <td style="text-align: right; font-size: 15px; font-weight: bold;">${formatMoney(totalAmount)}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div style="margin-bottom: 30px;">
+            <h4 style="margin: 0 0 8px; font-size: 13px; border-bottom: 1px solid #000; padding-bottom: 3px; font-weight: bold;">ĐIỀU KHOẢN THƯƠNG MẠI:</h4>
+            <p style="margin: 0; font-size: 12px; line-height: 1.5; white-space: pre-line;">${terms}</p>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 50px; text-align: center;">
+            <div>
+              <p style="margin: 0 0 100px; font-weight: bold; text-transform: uppercase; font-size: 13px;">ĐẠI DIỆN KHÁCH HÀNG</p>
+              <p style="margin: 0; font-size: 11px;">(Ký và ghi rõ họ tên)</p>
             </div>
             <div>
-              <h2 style="margin: 0; color: #1e293b; font-size: 24px;">ITS LONG AN CO., LTD</h2>
-              <p style="margin: 0; font-size: 12px; color: #64748b;">Giải pháp công nghệ & Tự động hóa</p>
+              <p style="margin: 0 0 100px; font-weight: bold; text-transform: uppercase; font-size: 13px;">ĐẠI DIỆN CÔNG TY (ITS)</p>
+              <p style="margin: 0; font-size: 11px;">(Ký và đóng dấu)</p>
             </div>
-          </div>
-          <div style="text-align: right;">
-            <h1 style="margin: 0; color: #1e293b; font-size: 28px; letter-spacing: 2px;">BÁO GIÁ</h1>
-            <p style="margin: 5px 0 0; font-size: 14px;">Mã số: <b>${window.currentQuoteIdTemp}</b></p>
-            <p style="margin: 0; font-size: 14px;">Ngày: ${new Date(date).toLocaleDateString('vi-VN')}</p>
-          </div>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 30px;">
-          <div>
-            <h4 style="margin: 0 0 10px; color: #6366f1; text-transform: uppercase; font-size: 12px;">Đơn vị nhận:</h4>
-            <p style="margin: 0; font-size: 16px;"><b>${customer}</b></p>
-            <p style="margin: 5px 0; font-size: 14px; color: #475569;">Địa chỉ: ${address || 'N/A'}</p>
-            <p style="margin: 0; font-size: 14px; color: #475569;">SĐT: ${phone || 'N/A'}</p>
-          </div>
-          <div style="text-align: right;">
-             <h4 style="margin: 0 0 10px; color: #6366f1; text-transform: uppercase; font-size: 12px;">Người đại diện:</h4>
-             <p style="margin: 0; font-size: 16px;"><b>${receiver || customer}</b></p>
-          </div>
-        </div>
-
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
-          <thead>
-            <tr style="background: #f8fafc;">
-              <th style="border: 1px solid #000; padding: 12px; text-align: center; width: 40px;">STT</th>
-              <th style="border: 1px solid #000; padding: 12px; text-align: left;">Chi tiết sản phẩm / Nội dung công việc</th>
-              <th style="border: 1px solid #000; padding: 12px; text-align: center; width: 60px;">ĐVT</th>
-              <th style="border: 1px solid #000; padding: 12px; text-align: center; width: 60px;">SL</th>
-              <th style="border: 1px solid #000; padding: 12px; text-align: right; width: 120px;">Đơn giá</th>
-              <th style="border: 1px solid #000; padding: 12px; text-align: right; width: 130px;">Thành tiền</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${itemsRows}
-            <tr style="background: #f8fafc; font-weight: bold;">
-              <td colspan="5" style="border: 1px solid #000; padding: 12px; text-align: right;">TỔNG CỘNG (VNĐ)</td>
-              <td style="border: 1px solid #000; padding: 12px; text-align: right; color: #b91c1c; font-size: 18px;">${formatMoney(totalAmount)}</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <div style="margin-bottom: 40px;">
-          <h4 style="margin: 0 0 10px; font-size: 14px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">ĐIỀU KHOẢN THƯƠNG MẠI:</h4>
-          <p style="margin: 0; font-size: 13px; line-height: 1.6; white-space: pre-line; color: #475569;">${terms}</p>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 60px; text-align: center;">
-          <div>
-            <p style="margin: 0 0 80px; font-weight: bold;">ĐẠI DIỆN KHÁCH HÀNG</p>
-            <p style="margin: 0; color: #94a3b8;">(Ký và ghi rõ họ tên)</p>
-          </div>
-          <div>
-            <p style="margin: 0 0 80px; font-weight: bold;">ĐẠI DIỆN CÔNG TY (ITS)</p>
-            <p style="margin: 0; font-size: 16px;"><b>NGUYỄN MINH THUẬN</b></p>
-            <p style="margin: 5px 0 0; color: #94a3b8;">(Đã ký)</p>
           </div>
         </div>
       `;
+      document.getElementById('print-area').innerHTML = htmlContent;
+      document.getElementById('preview-content').innerHTML = htmlContent;
+      document.getElementById('preview-modal').classList.add('show');
+      lucide.createIcons();
+    };
 
-      window.print();
+    window.previewQuoteFromList = (quoteId) => {
+      const q = quotes.find(x => x.id === quoteId);
+      if (!q) return showToast('Không tìm thấy báo giá', 'error');
+
+      window.currentQuoteIdTemp = q.id;
+      const customer = q.customer || '';
+      const receiver = q.receiver || customer;
+      const phone = q.phone || '';
+      const email = q.email || '';
+      const address = q.address || '';
+      const date = q.date || new Date().toISOString();
+      const terms = q.terms || '';
+      const items = q.items || [];
+      let sum = 0; items.forEach(i => sum += i.total);
+      let vatAmount = sum * 0.08;
+      const totalAmount = q.totalAmount || (sum + vatAmount);
+
+      let itemsRows = '';
+      items.forEach((item, index) => {
+        itemsRows += `
+          <tr>
+            <td style="text-align: center;">${index + 1}</td>
+            <td style="text-align: center;">${item.image ? `<img src="${item.image}" style="width:50px; height:50px; object-fit:contain; border-radius:4px;">` : ''}</td>
+            <td><b style="display:block; margin-bottom:2px;">${item.name}</b><span style="font-size:11px;">${item.content}</span></td>
+            <td style="text-align: center;">${item.unit}</td>
+            <td style="text-align: center;">${item.qty}</td>
+            <td style="text-align: right;">${formatMoney(item.price)}</td>
+            <td style="text-align: right;">${formatMoney(item.total)}</td>
+          </tr>
+        `;
+      });
+
+      const htmlContent = `
+        <style>
+          .quote-print-container { 
+            color: #000 !important; 
+            background: #fff !important;
+            font-family: 'Times New Roman', Times, serif; 
+            padding: 40px;
+            box-sizing: border-box;
+          }
+          .quote-print-container * { 
+            color: #000 !important; 
+            border-color: #000 !important; 
+          }
+          .quote-print-container table { 
+            width: 100%; 
+            border-collapse: collapse !important; 
+            margin-top: 20px;
+            margin-bottom: 20px; 
+          }
+          .quote-print-container th, .quote-print-container td { 
+            border: 1px solid #000 !important; 
+            padding: 8px !important; 
+            color: #000 !important;
+          }
+          .quote-print-container th { 
+            background: #f2f2f2 !important; 
+            font-weight: bold !important; 
+            text-transform: uppercase;
+            font-size: 12px;
+          }
+          .quote-print-container td { font-size: 13px; }
+        </style>
+        <div class="quote-print-container">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 15px;">
+            <div style="width: 140px;">
+              <img src="/logo.png" alt="Logo" style="max-width: 100%; height: auto;">
+            </div>
+            <div style="text-align: right; flex: 1; padding-left: 30px;">
+              <h2 style="margin: 0; font-size: 15px; font-weight: 800; text-transform: uppercase;">CÔNG TY TNHH GIẢI PHÁP CÔNG NGHỆ LONG AN</h2>
+              <p style="margin: 2px 0; font-size: 11px; line-height: 1.4;">
+                ĐỊA CHỈ: 15/8 TRƯƠNG VĂN BANG, KP3, XÃ CẦN GIUỘC, TỈNH TÂY NINH<br>
+                ĐT: 0272.373.1369 - MST: 1101 864 671<br>
+                WEBSITE: WWW.ITSLONGAN.COM - EMAIL: ITSLONGAN@GMAIL.COM
+              </p>
+            </div>
+          </div>
+
+          <div style="text-align: center; margin-bottom: 25px;">
+            <h1 style="margin: 0; font-size: 26px; letter-spacing: 4px; font-weight: 900; text-transform: uppercase;">BÁO GIÁ</h1>
+            <p style="margin: 5px 0 0; font-size: 14px; font-style: italic;">Cung cấp thiết bị và dịch vụ</p>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 40px; margin-bottom: 20px; line-height: 1.4; font-size: 12px;">
+            <div style="display: grid; grid-template-columns: 80px 1fr; gap: 4px;">
+              <div style="font-weight: bold;">Kính gửi:</div>
+              <div style="font-weight: bold; text-transform: uppercase;">${customer}</div>
+              
+              <div>Địa chỉ:</div>
+              <div>${address || 'N/A'}</div>
+              
+              <div>Người nhận:</div>
+              <div>${receiver || customer}</div>
+              
+              <div>Số điện thoại:</div>
+              <div>${phone || 'N/A'}</div>
+              
+              <div>Email:</div>
+              <div>${email || 'N/A'}</div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end;">
+              <div style="display: grid; grid-template-columns: max-content max-content; gap: 4px 8px;">
+                <div style="text-align: right;">Báo giá số:</div>
+                <div style="font-weight: bold; text-align: left;">${window.currentQuoteIdTemp}</div>
+                
+                <div style="text-align: right;">Ngày báo giá:</div>
+                <div style="text-align: left;">${new Date(date).toLocaleDateString('vi-VN')}</div>
+                
+                <div style="text-align: right;">Người lập:</div>
+                <div style="text-align: left;">P. Kinh Doanh</div>
+                
+                <div style="text-align: right;">Số điện thoại:</div>
+                <div style="text-align: left;">0903 159 101</div>
+                
+                <div style="text-align: right;">Email:</div>
+                <div style="text-align: left; color: #000;">kd2@itslongan.com</div>
+              </div>
+            </div>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 40px; text-align: center;">STT</th>
+                <th style="width: 70px; text-align: center;">HÌNH ẢNH</th>
+                <th style="text-align: left;">CHI TIẾT SẢN PHẨM / NỘI DUNG CÔNG VIỆC</th>
+                <th style="width: 50px; text-align: center;">ĐVT</th>
+                <th style="width: 50px; text-align: center;">SL</th>
+                <th style="width: 100px; text-align: right;">ĐƠN GIÁ</th>
+                <th style="width: 110px; text-align: right;">THÀNH TIỀN</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsRows}
+              <tr>
+                <td colspan="6" style="text-align: right; font-size: 13px; font-weight: bold;">CỘNG TIỀN HÀNG</td>
+                <td style="text-align: right; font-size: 14px; font-weight: bold;">${formatMoney(sum)}</td>
+              </tr>
+              <tr>
+                <td colspan="6" style="text-align: right; font-size: 13px; font-weight: bold;">THUẾ SUẤT GTGT (8%)</td>
+                <td style="text-align: right; font-size: 14px; font-weight: bold;">${formatMoney(vatAmount)}</td>
+              </tr>
+              <tr>
+                <td colspan="6" style="text-align: right; font-size: 13px; font-weight: bold;">TỔNG CỘNG THANH TOÁN (VNĐ)</td>
+                <td style="text-align: right; font-size: 15px; font-weight: bold;">${formatMoney(totalAmount)}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div style="margin-bottom: 30px;">
+            <h4 style="margin: 0 0 8px; font-size: 13px; border-bottom: 1px solid #000; padding-bottom: 3px; font-weight: bold;">ĐIỀU KHOẢN THƯƠNG MẠI:</h4>
+            <p style="margin: 0; font-size: 12px; line-height: 1.5; white-space: pre-line;">${terms}</p>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 50px; text-align: center;">
+            <div>
+              <p style="margin: 0 0 100px; font-weight: bold; text-transform: uppercase; font-size: 13px;">ĐẠI DIỆN KHÁCH HÀNG</p>
+              <p style="margin: 0; font-size: 11px;">(Ký và ghi rõ họ tên)</p>
+            </div>
+            <div>
+              <p style="margin: 0 0 100px; font-weight: bold; text-transform: uppercase; font-size: 13px;">ĐẠI DIỆN CÔNG TY (ITS)</p>
+              <p style="margin: 0; font-size: 11px;">(Ký và đóng dấu)</p>
+            </div>
+          </div>
+        </div>
+      `;
+      document.getElementById('print-area').innerHTML = htmlContent;
+      document.getElementById('preview-content').innerHTML = htmlContent;
+      document.getElementById('preview-modal').classList.add('show');
+      lucide.createIcons();
+    };
+
+    window.closePreview = () => {
+      document.getElementById('preview-modal').classList.remove('show');
     };
 
     // Dashboard Init
@@ -897,7 +1490,7 @@
     // ==========================================
     async function renderProfile(container) {
       const profileData = await fetchAPI('/users/profile');
-      
+
       container.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:24px;">
            <div>
@@ -913,8 +1506,8 @@
           <form onsubmit="saveProfile(event)">
             <div style="display:flex; gap:24px; margin-bottom:32px; align-items:center;">
               <div style="position:relative; width:80px; height:80px; border-radius:50%; background:var(--accent); overflow:hidden; flex-shrink:0; cursor:pointer;" onclick="document.getElementById('p_avatar_file').click()">
-                <img id="p_preview_avatar" src="${profileData.avatar || ''}" style="width:100%; height:100%; object-fit:cover; display:${profileData.avatar?'block':'none'}">
-                <div id="p_preview_letter" style="width:100%; height:100%; display:${profileData.avatar?'none':'flex'}; align-items:center; justify-content:center; color:white; font-size:32px; font-weight:bold;">${profileData.name.charAt(0).toUpperCase()}</div>
+                <img id="p_preview_avatar" src="${profileData.avatar || ''}" style="width:100%; height:100%; object-fit:cover; display:${profileData.avatar ? 'block' : 'none'}">
+                <div id="p_preview_letter" style="width:100%; height:100%; display:${profileData.avatar ? 'none' : 'flex'}; align-items:center; justify-content:center; color:white; font-size:32px; font-weight:bold;">${profileData.name.charAt(0).toUpperCase()}</div>
                 <div style="position:absolute; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0">
                    <i data-lucide="camera" style="color:white; width:24px; height:24px;"></i>
                 </div>
@@ -934,19 +1527,23 @@
             
             <div class="form-group">
               <label>Họ và tên *</label>
-              <input type="text" id="p_name" value="${profileData.name}" required>
+              <input type="text" id="p_name" value="${profileData.name}" onblur="validateField('p_name', this.value)">
+              <span class="error-msg"></span>
             </div>
             <div class="form-group">
               <label>Email</label>
               <input type="email" value="${profileData.email}" disabled style="opacity:0.6; cursor:not-allowed;">
+              <span class="error-msg"></span>
             </div>
             <div class="form-group">
-              <label>Số điện thoại</label>
-              <input type="text" id="p_phone" value="${profileData.phone || ''}">
+              <label>Số điện thoại *</label>
+              <input type="text" id="p_phone" value="${profileData.phone || ''}" onblur="validateField('p_phone', this.value)">
+              <span class="error-msg"></span>
             </div>
             <div class="form-group">
-              <label>Địa chỉ</label>
-              <input type="text" id="p_address" value="${profileData.address || ''}">
+              <label>Địa chỉ *</label>
+              <input type="text" id="p_address" value="${profileData.address || ''}" onblur="validateField('p_address', this.value)">
+              <span class="error-msg"></span>
             </div>
             
             <div style="margin-top:32px; display:flex; justify-content:flex-end; gap:12px; border-top:1px solid var(--border); padding-top:24px;">
@@ -961,7 +1558,7 @@
     window.previewAvatar = (url, name) => {
       const img = document.getElementById('p_preview_avatar');
       const letter = document.getElementById('p_preview_letter');
-      if(url) {
+      if (url) {
         img.src = url; img.style.display = 'block'; letter.style.display = 'none';
       } else {
         img.style.display = 'none'; letter.style.display = 'flex'; letter.textContent = name.charAt(0).toUpperCase();
@@ -970,11 +1567,11 @@
 
     window.handleFileUpload = (e, name) => {
       const file = e.target.files[0];
-      if(!file) return;
-      
+      if (!file) return;
+
       // Simple validation for size (max 2MB)
-      if(file.size > 2 * 1024 * 1024) return showToast('Ảnh quá lớn, vui lòng chọn ảnh < 2MB', 'error');
-      
+      if (file.size > 2 * 1024 * 1024) return showToast('Ảnh quá lớn, vui lòng chọn ảnh < 2MB', 'error');
+
       const reader = new FileReader();
       reader.onload = (ev) => {
         const base64 = ev.target.result;
@@ -986,34 +1583,43 @@
 
     window.saveProfile = async (e) => {
       e.preventDefault();
+
+      // Validation
+      let isValid = true;
+      ['p_name', 'p_phone', 'p_address'].forEach(id => {
+        if (!validateField(id, document.getElementById(id).value)) isValid = false;
+      });
+
+      if (!isValid) return showToast('Vui lòng kiểm tra lại thông tin', 'error');
+
       const btn = document.getElementById('btn-save-profile');
       const originalText = btn.innerHTML;
       btn.innerHTML = '<i data-lucide="loader-2" class="spin"></i> Đang lưu...';
       btn.disabled = true;
       lucide.createIcons();
-      
+
       try {
         const payload = {
           name: document.getElementById('p_name').value,
-          phone: document.getElementById('p_phone').value,
+          phone: normalizePhone(document.getElementById('p_phone').value),
           address: document.getElementById('p_address').value,
           avatar: document.getElementById('p_avatar_input').value
         };
-        
+
         const updatedUser = await fetchAPI('/users/profile', { method: 'PUT', body: JSON.stringify(payload) });
-        
+
         const sessionUser = JSON.parse(localStorage.getItem('crm_user'));
         const newUser = { ...sessionUser, ...updatedUser };
         localStorage.setItem('crm_user', JSON.stringify(newUser));
-        
+
         document.getElementById('header-user-name').textContent = newUser.name;
         const ava = document.getElementById('header-avatar');
-        if(newUser.avatar) {
+        if (newUser.avatar) {
           ava.innerHTML = `<img src="${newUser.avatar}">`;
         } else {
           ava.innerHTML = newUser.name.charAt(0).toUpperCase();
         }
-        
+
         showToast('Cập nhật Profile thành công!');
       } catch (err) {
         showToast(err.message, 'error');
@@ -1027,4 +1633,5 @@
     loadView('dashboard');
   </script>
 </body>
+
 </html>
