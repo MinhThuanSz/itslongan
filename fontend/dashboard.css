@@ -68,7 +68,9 @@ body {
   object-fit: contain;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   flex-shrink: 0;
+  cursor: pointer;
 }
+.sidebar-logo a:hover .sidebar-logo-img { opacity: 0.8; }
 .sidebar.collapsed .sidebar-logo-img {
   height: 32px;
 }

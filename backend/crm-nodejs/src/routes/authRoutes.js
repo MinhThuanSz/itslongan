@@ -17,7 +17,7 @@ router.get('/google/callback',
   passport.authenticate('google', { session: false, failureRedirect: `${process.env.CLIENT_URL}/login?error=google_failed` }),
   (req, res) => {
     const { token, user } = req.user;
-    res.redirect(`${process.env.CLIENT_URL}/oauth-callback?token=${token}&name=${encodeURIComponent(user.name)}&avatar=${encodeURIComponent(user.avatar || '')}&role=${user.role}`);
+    res.redirect(`${process.env.CLIENT_URL}/oauth-callback?token=${token}&name=${encodeURIComponent(user.name)}&email=${encodeURIComponent(user.email || '')}&avatar=${encodeURIComponent(user.avatar || '')}&role=${user.role}`);
   }
 );
 

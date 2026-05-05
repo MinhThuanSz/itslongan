@@ -22,6 +22,7 @@
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
     const name  = params.get('name');
+    const email = params.get('email');
     const avatar= params.get('avatar');
     const role  = params.get('role');
     const error = params.get('error');
@@ -35,7 +36,7 @@
       setTimeout(() => { window.location.href = 'login.html'; }, 2500);
     } else if (token) {
       localStorage.setItem('crm_token', token);
-      localStorage.setItem('crm_user', JSON.stringify({ name, avatar, role }));
+      localStorage.setItem('crm_user', JSON.stringify({ name, email, avatar, role }));
       // Slide out + redirect
       document.body.classList.add('page-exit');
       setTimeout(() => { window.location.href = 'dashboard.html'; }, 400);

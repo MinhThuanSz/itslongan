@@ -317,14 +317,25 @@ async function handleRegister(e) {
 }
 
 /* ================================================
-   AUTO-FILL remembered email on login page
+   PREVENT BROWSER AUTOFILL on login page
    ================================================ */
 window.addEventListener('DOMContentLoaded', () => {
-  const remembered = localStorage.getItem('crm_remember_email');
-  const emailInput = document.getElementById('loginEmail');
-  const rememberCb = document.getElementById('rememberMe');
-  if (remembered && emailInput) {
-    emailInput.value = remembered;
-    if (rememberCb) rememberCb.checked = true;
-  }
+  const emailInput    = document.getElementById('loginEmail');
+  const passwordInput = document.getElementById('loginPassword');
+  if (!emailInput || !passwordInput) return;
+
+  // Clear immediately
+  emailInput.value    = '';
+  passwordInput.value = '';
+
+  // Some browsers auto-fill after a short delay — clear again
+  setTimeout(() => {
+    emailInput.value    = '';
+    passwordInput.value = '';
+  }, 100);
+
+  setTimeout(() => {
+    emailInput.value    = '';
+    passwordInput.value = '';
+  }, 500);
 });
