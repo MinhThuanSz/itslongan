@@ -1,0 +1,54 @@
+# ============================================================
+# .gitignore - ITS Long An Backend
+# ============================================================
+
+# ─── Environment Variables (BẮT BUỘC - không được commit) ───
+.env
+.env.*
+!.env.example
+
+# ─── Node.js / crm-nodejs ───────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+
+# ─── Java / Spring Boot ─────────────────────────────────────
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+.mvn/wrapper/maven-wrapper.jar
+
+# ─── IDE & Editor ───────────────────────────────────────────
+.idea/
+*.iml
+*.iws
+.classpath
+.project
+.settings/
+.factorypath
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ─── OS Generated ───────────────────────────────────────────
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ─── Logs ───────────────────────────────────────────────────
+logs/
+*.log
+
+# ─── Build Output ───────────────────────────────────────────
+dist/
+build/
+out/
