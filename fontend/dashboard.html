@@ -72,9 +72,11 @@
     <header class="topbar">
       <div style="display:flex; align-items:center; gap:16px;">
         <button class="mobile-toggle" onclick="toggleMobileMenu()"><i data-lucide="menu"></i></button>
-        <div class="header-search">
+        <div class="search-overlay" id="global-search-overlay"></div>
+        <div class="header-search" id="global-search-container">
           <i data-lucide="search"></i>
-          <input type="text" placeholder="Tìm kiếm nhanh..." />
+          <input type="text" id="global-search-input" placeholder="Tìm kiếm nhanh (Ctrl + K)..." autocomplete="off" />
+          <div class="search-dropdown" id="global-search-dropdown"></div>
         </div>
       </div>
       <div class="header-actions">
@@ -100,6 +102,8 @@
 
   <!-- Hidden Print Area (for actual browser printing) -->
   <style>
+    .custom-role-option:hover { background: #f1f5f9; }
+    .custom-role-option.disabled:hover { background: transparent; }
     @media screen {
       #print-area {
         display: none !important;
@@ -133,10 +137,10 @@
       style="margin: 0 auto; display: flex; flex-direction: column; align-items: flex-end; gap: 12px; max-width: 210mm; width: 100%;">
       <!-- Sticky Action Bar -->
       <div
-        style="position: sticky; top: 0; z-index: 2001; display: flex; gap: 12px; background: rgba(15,23,42,0.8); padding: 10px 20px; border-radius: 12px; backdrop-filter: blur(8px);">
+        style="position: sticky; top: 0; z-index: 2001; display: flex; gap: 12px; background: rgba(255,255,255,0.8); padding: 10px 20px; border-radius: 12px; backdrop-filter: blur(8px); border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
         <button class="btn btn-primary" onclick="window.print()"><i data-lucide="printer"></i> In ngay</button>
         <button class="btn btn-ghost" onclick="closePreview()"
-          style="background: rgba(255,255,255,0.1); color: white;"><i data-lucide="x"></i> Đóng</button>
+          style="background: #f1f5f9; color: var(--text-primary);"><i data-lucide="x"></i> Đóng</button>
       </div>
 
       <!-- A4 Paper -->
@@ -203,7 +207,11 @@
 
     // RBAC UI
     document.getElementById('header-user-name').textContent = user.name;
-    document.getElementById('header-user-role').textContent = user.role.toLowerCase();
+    if (user.role === 'ADMIN') {
+      document.getElementById('header-user-role').innerHTML = '<span style="background:var(--primary); color:white; padding:2px 8px; border-radius:6px; font-size:10px; font-weight:700; letter-spacing:0.5px;">ADMIN</span>';
+    } else {
+      document.getElementById('header-user-role').innerHTML = '<span style="background:#e0e7ff; color:#4f46e5; padding:2px 8px; border-radius:6px; font-size:10px; font-weight:700; letter-spacing:0.5px;">STAFF (Read-only)</span>';
+    }
 
     if (user.avatar) {
       document.getElementById('header-avatar').innerHTML = `<img src="${user.avatar}">`;
@@ -302,7 +310,11 @@
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, ...(options.headers || {}) }
       });
       if (!res.ok) {
-        if (res.status === 401 || res.status === 403) logout();
+        if (res.status === 401 || res.status === 403) {
+           const err = await res.json().catch(() => ({}));
+           if (res.status === 403) throw new Error(err.message || 'Bạn không có quyền thực hiện hành động này');
+           logout();
+        }
         const err = await res.json().catch(() => ({}));
         throw new Error(err.message || 'Lỗi server');
       }
@@ -374,9 +386,14 @@
       }
     };
 
-    const loadView = async (view, param = null) => {
+    const loadView = async (view, param = null, isPopState = false) => {
       updateNav(view);
       currentModule = view;
+      if (!isPopState) {
+        let url = view === 'dashboard' ? '/dashboard' : `/${view}`;
+        if (param) url += `?id=${param}`;
+        window.history.pushState({ view, param }, "", url);
+      }
       const content = document.getElementById('main-content');
       content.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top on view change
 
@@ -417,6 +434,9 @@
         data = allUsers.filter(u => u.role === 'CUSTOMER');
       } else {
         data = await fetchAPI(`/${module}`);
+        if (module === 'users') {
+          data = data.filter(u => u.role !== 'CUSTOMER');
+        }
       }
       currentData = data;
 
@@ -425,7 +445,7 @@
       if (module === 'users' || module === 'customers') thead = `<tr><th>Họ tên</th><th>Email</th><th>Vai trò</th><th style="text-align:right">Thao tác</th></tr>`;
       else if (module === 'products') thead = `<tr><th style="width:60px">Ảnh</th><th>Mã SP</th><th>Tên sản phẩm</th><th>Đơn giá</th><th>Tồn kho</th><th style="text-align:right">Thao tác</th></tr>`;
       else if (module === 'companies') thead = `<tr><th>Tên Công ty</th><th>Email</th><th>SĐT</th><th style="text-align:right">Thao tác</th></tr>`;
-      else if (module === 'orders') thead = `<tr><th>Mã Đơn</th><th>Khách hàng</th><th>Tổng tiền</th><th>Trạng thái</th><th>Ngày tạo</th><th style="text-align:right">Thao tác</th></tr>`;
+      else if (module === 'orders') thead = `<tr><th>Mã Đơn</th><th>Khách hàng</th><th>Tổng tiền</th><th>Trạng thái</th><th>Cập nhật</th><th style="text-align:right">Thao tác</th></tr>`;
 
       container.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:24px;">
@@ -433,7 +453,9 @@
               <h1 style="font-size:24px; font-weight:600; margin-bottom:4px;">${titles[module]}</h1>
               <div style="color:var(--text-secondary); font-size:14px;">Quản lý dữ liệu hệ thống</div>
            </div>
-           ${module !== 'orders' ? `<button type="button" class="btn btn-primary" onclick="openCrudModal()"><i data-lucide="plus"></i> Thêm mới</button>` : ''}
+           ${module !== 'orders' ? (user.role === 'STAFF' 
+              ? `<button type="button" class="btn btn-primary" style="opacity:0.6; cursor:not-allowed;" onclick="showToast('Bạn chỉ có quyền xem', 'error')"><i data-lucide="plus"></i> Thêm mới</button>`
+              : `<button type="button" class="btn btn-primary" onclick="openCrudModal()"><i data-lucide="plus"></i> Thêm mới</button>`) : ''}
         </div>
         <div class="card table-card">
           <div class="table-header-row">
@@ -492,8 +514,12 @@
             <td style="font-weight:600">${formatMoney(item.price)} đ</td><td>${item.stock}</td>
             <td>
               <div style="display: flex; gap: 4px; justify-content: flex-end;">
-                <button type="button" class="btn-icon-header" onclick="openCrudModal(${item.id})"><i data-lucide="edit-2" style="width:16px;height:16px;"></i></button>
-                <button type="button" class="btn-icon-header" style="color:var(--danger)" onclick="deleteRecord(${item.id})"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></button>
+                ${user.role === 'STAFF'
+                  ? `<button type="button" class="btn-icon-header" style="opacity:0.5; cursor:not-allowed;" title="Bạn chỉ có quyền xem" onclick="showToast('Bạn chỉ có quyền xem', 'error')"><i data-lucide="edit-2" style="width:16px;height:16px;"></i></button>
+                     <button type="button" class="btn-icon-header" style="color:var(--danger); opacity:0.5; cursor:not-allowed;" title="Bạn chỉ có quyền xem" onclick="showToast('Bạn chỉ có quyền xem', 'error')"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></button>`
+                  : `<button type="button" class="btn-icon-header" onclick="openCrudModal(${item.id})"><i data-lucide="edit-2" style="width:16px;height:16px;"></i></button>
+                     <button type="button" class="btn-icon-header" style="color:var(--danger)" onclick="deleteRecord(${item.id})"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></button>`
+                }
               </div>
             </td>
           </tr>`;
@@ -503,8 +529,12 @@
             <td><div style="font-weight:600">${item.name}</div></td><td style="color:var(--text-secondary)">${item.email || '-'}</td><td>${item.phone || '-'}</td>
             <td>
               <div style="display: flex; gap: 4px; justify-content: flex-end;">
-                <button type="button" class="btn-icon-header" onclick="openCrudModal(${item.id})"><i data-lucide="edit-2" style="width:16px;height:16px;"></i></button>
-                <button type="button" class="btn-icon-header" style="color:var(--danger)" onclick="deleteRecord(${item.id})"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></button>
+                ${user.role === 'STAFF'
+                  ? `<button type="button" class="btn-icon-header" style="opacity:0.5; cursor:not-allowed;" title="Bạn chỉ có quyền xem" onclick="showToast('Bạn chỉ có quyền xem', 'error')"><i data-lucide="edit-2" style="width:16px;height:16px;"></i></button>
+                     <button type="button" class="btn-icon-header" style="color:var(--danger); opacity:0.5; cursor:not-allowed;" title="Bạn chỉ có quyền xem" onclick="showToast('Bạn chỉ có quyền xem', 'error')"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></button>`
+                  : `<button type="button" class="btn-icon-header" onclick="openCrudModal(${item.id})"><i data-lucide="edit-2" style="width:16px;height:16px;"></i></button>
+                     <button type="button" class="btn-icon-header" style="color:var(--danger)" onclick="deleteRecord(${item.id})"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></button>`
+                }
               </div>
             </td>
           </tr>`;
@@ -517,11 +547,17 @@
             <td style="font-family:monospace; font-weight:600;">${item.order_code}</td><td>${item.customer?.name || '-'}</td>
             <td style="font-weight:600">${formatMoney(item.total_price)} đ</td>
             <td><span class="badge ${badgeClass}"><i data-lucide="${icon}"></i> ${item.status}</span></td>
-            <td style="color:var(--text-secondary)">${new Date(item.created_at).toLocaleDateString('vi-VN')}</td>
+            <td style="color:var(--text-secondary); font-size: 13px;">${new Date(item.updated_at || item.created_at).toLocaleString('vi-VN', { hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit' })}</td>
             <td>
               <div style="display: flex; gap: 4px; justify-content: flex-end;">
-                <button type="button" class="btn-icon-header" style="color:var(--success)" title="Hoàn thành" onclick="updateOrderStatus(${item.id}, 'completed')"><i data-lucide="check" style="width:16px;height:16px;"></i></button>
-                <button type="button" class="btn-icon-header" style="color:var(--danger)" title="Hủy" onclick="updateOrderStatus(${item.id}, 'canceled')"><i data-lucide="x" style="width:16px;height:16px;"></i></button>
+                ${user.role === 'STAFF'
+                  ? `<button type="button" class="btn-icon-header" style="color:var(--success); opacity:0.5; cursor:not-allowed;" title="Bạn chỉ có quyền xem" onclick="showToast('Bạn chỉ có quyền xem', 'error')"><i data-lucide="check" style="width:16px;height:16px;"></i></button>
+                     <button type="button" class="btn-icon-header" style="color:var(--danger); opacity:0.5; cursor:not-allowed;" title="Bạn chỉ có quyền xem" onclick="showToast('Bạn chỉ có quyền xem', 'error')"><i data-lucide="x" style="width:16px;height:16px;"></i></button>
+                     <button type="button" class="btn-icon-header" style="color:var(--danger); margin-left: 8px; border-left: 1px solid var(--border); padding-left: 12px; opacity:0.5; cursor:not-allowed;" title="Bạn chỉ có quyền xem" onclick="showToast('Bạn chỉ có quyền xem', 'error')"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></button>`
+                  : `<button type="button" class="btn-icon-header" style="color:var(--success)" title="Hoàn thành" onclick="updateOrderStatus(${item.id}, 'completed')"><i data-lucide="check" style="width:16px;height:16px;"></i></button>
+                     <button type="button" class="btn-icon-header" style="color:var(--danger)" title="Hủy" onclick="updateOrderStatus(${item.id}, 'canceled')"><i data-lucide="x" style="width:16px;height:16px;"></i></button>
+                     <button type="button" class="btn-icon-header" style="color:var(--danger); margin-left: 8px; border-left: 1px solid var(--border); padding-left: 12px;" title="Xóa vĩnh viễn" onclick="deleteRecord(${item.id}, 'orders')"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></button>`
+                }
               </div>
             </td>
           </tr>`;
@@ -541,6 +577,7 @@
 
     // --- CRUD MODAL LOGIC ---
     window.openCrudModal = (id = null) => {
+      if (user.role === 'STAFF') { return showToast('Bạn chỉ có quyền xem', 'error'); }
       if (id && typeof id === 'object') id = null;
       currentEditId = id;
       const item = id ? currentData.find(x => x.id === id) : {};
@@ -550,30 +587,162 @@
       let html = '';
       if (currentModule === 'users' || currentModule === 'customers') {
         title.textContent = id ? 'Cập nhật Người dùng' : 'Thêm Người dùng mới';
+
+      if (currentModule === 'users' || currentModule === 'customers') {
+        let defaultRole = currentModule === 'customers' ? 'CUSTOMER' : 'STAFF';
+        if (id) defaultRole = item.role || defaultRole;
+
+        const roleConfig = [
+          { value: 'ADMIN', label: 'Quản trị (ADMIN)', color: '#1e3a8a', bg: '#dbeafe' },
+          { value: 'MANAGER', label: 'Quản lý (MANAGER)', color: '#0284c7', bg: '#e0f2fe' },
+          { value: 'STAFF', label: 'Nhân viên ITS (STAFF)', color: '#7c3aed', bg: '#ede9fe' },
+          { value: 'CUSTOMER', label: 'Khách hàng (CUSTOMER)', color: '#4b5563', bg: '#f3f4f6' }
+        ];
+
+        let roleOptionsHtml = '';
+        roleConfig.forEach(r => {
+          let disabled = false;
+          let tooltip = '';
+          if (user.role === 'MANAGER' && r.value === 'ADMIN') {
+            disabled = true;
+            tooltip = 'Bạn không có quyền chọn vai trò này';
+          }
+          if (currentModule === 'customers' && r.value !== 'CUSTOMER') {
+            disabled = true;
+            tooltip = 'Chỉ được chọn Khách hàng';
+          }
+
+          roleOptionsHtml += `
+            <div class="custom-role-option ${disabled ? 'disabled' : ''}" 
+                 style="padding: 10px 12px; display: flex; align-items: center; border-radius: 6px; margin-bottom: 2px; transition: background 0.2s; 
+                 ${disabled ? 'opacity: 0.5; cursor: not-allowed;' : 'cursor: pointer;'}"
+                 title="${tooltip}"
+                 ${!disabled ? `onclick="selectCustomRole('${r.value}')"` : ''}>
+              <span style="background: ${r.bg}; color: ${r.color}; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;">${r.label}</span>
+            </div>
+          `;
+        });
+        
+        setTimeout(() => {
+          const dd = document.getElementById('custom-role-dropdown');
+          if (dd) dd.innerHTML = roleOptionsHtml;
+          window.selectCustomRole(defaultRole);
+          lucide.createIcons();
+        }, 50);
+        
+        window.selectCustomRole = (val) => {
+           const conf = roleConfig.find(x => x.value === val);
+           document.getElementById('m_role').value = val;
+           document.getElementById('custom-role-badge').innerHTML = `<span style="background: ${conf.bg}; color: ${conf.color}; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;">${conf.label}</span>`;
+           document.getElementById('custom-role-dropdown').style.display = 'none';
+        };
+        
+        // Hide dropdown on click outside
+        document.addEventListener('click', function(e) {
+          const display = document.getElementById('custom-role-display');
+          const dropdown = document.getElementById('custom-role-dropdown');
+          if (display && dropdown && !display.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.style.display = 'none';
+          }
+        });
+      }
+
         html = `
           <div class="form-group"><label>Họ tên *</label><input type="text" id="m_name" value="${item.name || ''}" onblur="validateField('m_name', this.value)"><span class="error-msg"></span></div>
           <div class="form-group"><label>Email *</label><input type="email" id="m_email" value="${item.email || ''}" onblur="validateField('m_email', this.value)" ${id ? 'readonly' : ''}><span class="error-msg"></span></div>
           ${!id ? `<div class="form-group"><label>Mật khẩu *</label><input type="password" id="m_pass" onblur="validateField('m_pass', this.value)"><span class="error-msg"></span></div>` : ''}
-          <div class="form-group"><label>Vai trò</label>
-            <select id="m_role" ${currentModule === 'customers' ? 'disabled' : ''}>
-              <option value="CUSTOMER" ${item.role === 'CUSTOMER' || currentModule === 'customers' ? 'selected' : ''}>Khách hàng (CUSTOMER)</option>
-              <option value="MANAGER" ${item.role === 'MANAGER' ? 'selected' : ''}>Quản lý (MANAGER)</option>
-              <option value="ADMIN" ${item.role === 'ADMIN' ? 'selected' : ''}>Quản trị (ADMIN)</option>
-            </select>
+          
+          <div class="form-group" style="position:relative;">
+            <label>Vai trò *</label>
+            <input type="hidden" id="m_role" value="">
+            
+            <div id="custom-role-display" style="padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; background: var(--bg-secondary); min-height: 42px;" onclick="document.getElementById('custom-role-dropdown').style.display = document.getElementById('custom-role-dropdown').style.display === 'none' ? 'block' : 'none'">
+               <div id="custom-role-badge"></div>
+               <i data-lucide="chevron-down" style="width: 16px; height: 16px; color: var(--text-secondary);"></i>
+            </div>
+            
+            <div id="custom-role-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid var(--border); border-radius: 8px; margin-top: 4px; padding: 6px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 100;">
+            </div>
             <span class="error-msg"></span>
           </div>
+
         `;
       } else if (currentModule === 'products') {
         title.textContent = id ? 'Cập nhật Sản phẩm' : 'Thêm Sản phẩm mới';
+        const blankImg = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCI+PHJlY3Qgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiBmaWxsPSIjMjIyIiByeD0iOCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjExIiBmaWxsPSIjNjY2Ij5BbmggU1A8L3RleHQ+PC9zdmc+';
         html = `
-          <div style="display:flex; gap:16px; margin-bottom:16px; align-items:center;">
-             <img src="${item.image || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCI+PHJlY3Qgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiBmaWxsPSIjZWVlIi8+PC9zdmc+'}" id="m_img_preview" style="width:60px; height:60px; border-radius:8px; object-fit:cover; border:1px solid var(--border);">
-             <div class="form-group" style="margin:0; flex:1;"><label>Hình ảnh (Base64 hoặc URL)</label><input type="text" id="m_image" value="${item.image || ''}" placeholder="Nhập URL ảnh hoặc dán Base64" oninput="document.getElementById('m_img_preview').src = this.value || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCI+PHJlY3Qgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiBmaWxsPSIjZWVlIi8+PC9zdmc+'"><span class="error-msg"></span></div>
+          <!-- Image Upload Area -->
+          <div style="margin-bottom:20px;">
+            <label style="font-size:13px; font-weight:500; color:var(--text-secondary); display:block; margin-bottom:10px;">Hình ảnh sản phẩm</label>
+            <div style="display:flex; gap:16px; align-items:flex-start;">
+              <!-- Preview + click to upload -->
+              <div style="position:relative; flex-shrink:0;">
+                <img src="${item.image || blankImg}" id="m_img_preview"
+                  style="width:80px; height:80px; border-radius:10px; object-fit:cover; border:2px dashed var(--border); cursor:pointer; transition:border-color 0.2s;"
+                  onclick="document.getElementById('m_file_input').click()"
+                  onmouseover="this.style.borderColor='var(--primary)'"
+                  onmouseout="this.style.borderColor='var(--border)'"
+                  title="Nhấn để chọn ảnh từ máy">
+                <div style="position:absolute; bottom:-6px; right:-6px; background:var(--primary); border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; cursor:pointer; pointer-events:none;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                </div>
+              </div>
+              <!-- Controls -->
+              <div style="flex:1; display:flex; flex-direction:column; gap:8px;">
+                <!-- File picker (hidden) -->
+                <input type="file" id="m_file_input" accept="image/*" style="display:none;" onchange="
+                  const file = this.files[0];
+                  if (!file) return;
+                  if (file.size > 5 * 1024 * 1024) { alert('Ảnh quá lớn! Vui lòng chọn ảnh dưới 5MB.'); this.value=''; return; }
+                  const reader = new FileReader();
+                  reader.onload = e => {
+                    document.getElementById('m_img_preview').src = e.target.result;
+                    document.getElementById('m_image').value = e.target.result;
+                    document.getElementById('m_file_name').textContent = '✓ ' + file.name;
+                    document.getElementById('m_file_name').style.color = 'var(--success)';
+                  };
+                  reader.readAsDataURL(file);
+                ">
+                <!-- Upload button -->
+                <button type="button" onclick="document.getElementById('m_file_input').click()"
+                  style="background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.4); color:#3b82f6; padding:8px 14px; border-radius:8px; cursor:pointer; font-size:13px; font-weight:500; display:flex; align-items:center; gap:6px; width:fit-content; transition:all 0.2s;"
+                  onmouseover="this.style.background='rgba(59,130,246,0.25)'"
+                  onmouseout="this.style.background='rgba(59,130,246,0.15)'">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  Tải ảnh từ máy
+                </button>
+                <div id="m_file_name" style="font-size:12px; color:var(--text-secondary);">Hỗ trợ: JPG, PNG, WebP, GIF (tối đa 5MB)</div>
+                <!-- URL input -->
+                <div style="display:flex; gap:8px; align-items:center;">
+                  <input type="text" id="m_image" value="${item.image || ''}" placeholder="Hoặc nhập URL ảnh..."
+                    style="flex:1; padding:8px 12px; border-radius:8px; background:#ffffff; border:1px solid var(--border); color:var(--text-primary); outline:none; font-size:13px; box-shadow:var(--shadow-sm);"
+                    oninput="
+                      const v = this.value.trim();
+                      if(v) {
+                        document.getElementById('m_img_preview').src = v;
+                        document.getElementById('m_file_name').textContent = '↗ Dùng URL ảnh';
+                        document.getElementById('m_file_name').style.color = '#60a5fa';
+                      } else {
+                        document.getElementById('m_img_preview').src = '${blankImg}';
+                        document.getElementById('m_file_name').textContent = 'Hỗ trợ: JPG, PNG, WebP, GIF (tối đa 5MB)';
+                        document.getElementById('m_file_name').style.color = 'var(--text-secondary)';
+                      }
+                    ">
+                  <button type="button" title="Xóa ảnh"
+                    onclick="document.getElementById('m_img_preview').src='${blankImg}'; document.getElementById('m_image').value=''; document.getElementById('m_file_input').value=''; document.getElementById('m_file_name').textContent='Hỗ trợ: JPG, PNG, WebP, GIF (tối đa 5MB)'; document.getElementById('m_file_name').style.color='var(--text-secondary)';"
+                    style="background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); color:#f87171; padding:8px 10px; border-radius:8px; cursor:pointer; transition:all 0.2s; flex-shrink:0;"
+                    onmouseover="this.style.background='rgba(239,68,68,0.3)'"
+                    onmouseout="this.style.background='rgba(239,68,68,0.15)'">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="form-group"><label>Mã SP *</label><input type="text" id="m_code" value="${item.product_code || ''}" onblur="validateField('m_code', this.value)"><span class="error-msg"></span></div>
           <div class="form-group"><label>Tên Sản phẩm *</label><input type="text" id="m_name" value="${item.name || ''}" onblur="validateField('m_name', this.value)"><span class="error-msg"></span></div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-            <div class="form-group"><label>Đơn giá (VNĐ) *</label><input type="number" id="m_price" value="${item.price || 0}"><span class="error-msg"></span></div>
+            <div class="form-group"><label>Đơn giá (VNĐ) *</label><input type="text" id="m_price" value="${formatMoney(item.price || 0)}" oninput="formatInputMoney(this)"><span class="error-msg"></span></div>
             <div class="form-group"><label>Tồn kho *</label><input type="number" id="m_stock" value="${item.stock || 0}"><span class="error-msg"></span></div>
           </div>
         `;
@@ -603,6 +772,8 @@
 
     window.handleCrudSubmit = async (e) => {
       e.preventDefault();
+      
+      if (user.role === 'STAFF') { return showToast('Bạn chỉ có quyền xem', 'error'); }
 
       // Full Validation before submit
       let isValid = true;
@@ -647,7 +818,7 @@
           payload = {
             product_code: document.getElementById('m_code').value,
             name: document.getElementById('m_name').value,
-            price: document.getElementById('m_price').value,
+            price: parseMoney(document.getElementById('m_price').value),
             stock: document.getElementById('m_stock').value,
             image: document.getElementById('m_image') ? document.getElementById('m_image').value : null
           };
@@ -692,13 +863,15 @@
       }
     };
 
-    window.deleteRecord = async (id) => {
+    window.deleteRecord = async (id, moduleOverride = null) => {
+      if (user.role === 'STAFF') { return showToast('Bạn chỉ có quyền xem', 'error'); }
+      const targetModule = moduleOverride || currentModule;
       showConfirm(
         'Xác nhận xóa?',
         'Bạn có chắc chắn muốn xóa bản ghi này? Dữ liệu sẽ bị xóa vĩnh viễn khỏi hệ thống.',
         async () => {
           try {
-            let endpoint = `/${currentModule === 'customers' ? 'users' : currentModule}/${id}`;
+            let endpoint = `/${targetModule === 'customers' ? 'users' : targetModule}/${id}`;
             await fetchAPI(endpoint, { method: 'DELETE' });
 
             // Immediate UI Update
@@ -714,13 +887,19 @@
     };
 
     window.updateOrderStatus = async (id, status) => {
+      if (user.role === 'STAFF') { return showToast('Bạn chỉ có quyền xem', 'error'); }
       try {
-        const updatedOrder = await fetchAPI(`/orders/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) });
+        const res = await fetchAPI(`/orders/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) });
+        
+        // Cấu trúc API trả về là { message, order }
+        const updatedOrderData = res.order || res;
 
-        // Immediate UI Update
+        // Cập nhật UI ngay lập tức
         const index = currentData.findIndex(x => x.id === id);
         if (index !== -1) {
-          currentData[index] = updatedOrder;
+          // Gộp dữ liệu mới vào dữ liệu cũ để giữ lại các thông tin liên kết (customer, details...) 
+          // vốn không có trong kết quả trả về của API update status
+          currentData[index] = { ...currentData[index], ...updatedOrderData };
           renderTableBody(id);
         }
 
@@ -743,8 +922,12 @@
           <td style="text-align:right">
             <div style="display:flex; justify-content:flex-end; gap:4px;">
               <button type="button" class="btn-icon-header" onclick="previewQuoteFromList('${q.id}')" title="Xem trước báo giá"><i data-lucide="eye" style="width:16px;height:16px;"></i></button>
-              <button type="button" class="btn-icon-header" onclick="loadView('quotation_form', '${q.id}')" title="Chỉnh sửa"><i data-lucide="edit-2" style="width:16px;height:16px;"></i></button>
-              <button type="button" class="btn-icon-header" style="color:var(--danger)" onclick="deleteQuote('${q.id}')" title="Xoá"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></button>
+              ${user.role === 'STAFF'
+                ? `<button type="button" class="btn-icon-header" style="opacity:0.5; cursor:not-allowed;" title="Bạn chỉ có quyền xem" onclick="showToast('Bạn chỉ có quyền xem', 'error')"><i data-lucide="edit-2" style="width:16px;height:16px;"></i></button>
+                   <button type="button" class="btn-icon-header" style="color:var(--danger); opacity:0.5; cursor:not-allowed;" title="Bạn chỉ có quyền xem" onclick="showToast('Bạn chỉ có quyền xem', 'error')"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></button>`
+                : `<button type="button" class="btn-icon-header" onclick="loadView('quotation_form', '${q.id}')" title="Chỉnh sửa"><i data-lucide="edit-2" style="width:16px;height:16px;"></i></button>
+                   <button type="button" class="btn-icon-header" style="color:var(--danger)" onclick="deleteQuote('${q.id}')" title="Xoá"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></button>`
+              }
             </div>
           </td>
         </tr>
@@ -756,7 +939,10 @@
               <h1 style="font-size:24px; font-weight:600; margin-bottom:4px;">Báo giá</h1>
               <div style="color:var(--text-secondary); font-size:14px;">Quản lý chứng từ báo giá</div>
            </div>
-           <button type="button" class="btn btn-primary" onclick="loadView('quotation_form')"><i data-lucide="plus"></i> Tạo Báo giá</button>
+           ${user.role === 'STAFF'
+              ? `<button type="button" class="btn btn-primary" style="opacity:0.6; cursor:not-allowed;" onclick="showToast('Bạn chỉ có quyền xem', 'error')"><i data-lucide="plus"></i> Tạo Báo giá</button>`
+              : `<button type="button" class="btn btn-primary" onclick="loadView('quotation_form')"><i data-lucide="plus"></i> Tạo Báo giá</button>`
+           }
         </div>
         <div class="card table-card">
           <div class="table-header-row">
@@ -771,6 +957,7 @@
     }
 
     window.deleteQuote = (id) => {
+      if (user.role === 'STAFF') { return showToast('Bạn chỉ có quyền xem', 'error'); }
       showConfirm(
         'Xóa Báo giá?',
         `Bạn có chắc muốn xóa báo giá ${id}?`,
@@ -801,16 +988,16 @@
       window.currentQuoteIdTemp = currentQuoteId;
       const q = quoteId ? quotes.find(x => x.id === quoteId) : null;
 
-      let ordersHtml = '<option value="">-- Chọn đơn hàng để tự động điền --</option>';
+      let productsHtml = '<option value="">-- Chọn sản phẩm để thêm nhanh --</option>';
       let companiesHtml = '<option value="">-- Chọn công ty để tự động điền --</option>';
       try {
-        const [orders, companies] = await Promise.all([
-          fetchAPI('/orders'),
+        const [products, companies] = await Promise.all([
+          fetchAPI('/products'),
           fetchAPI('/companies')
         ]);
-        window.tempOrders = orders;
+        window.tempProducts = products;
         window.tempCompanies = companies;
-        orders.forEach(o => { ordersHtml += `<option value="${o.id}">${o.order_code} - ${o.customer?.name || 'Khách'}</option>`; });
+        products.forEach(p => { productsHtml += `<option value="${p.id}">${p.product_code} - ${p.name}</option>`; });
         companies.forEach(c => { companiesHtml += `<option value="${c.id}">${c.name}</option>`; });
       } catch (e) { }
 
@@ -828,16 +1015,16 @@
         </div>
 
         <div class="card" style="padding:24px; margin-bottom:24px;">
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; padding:16px; background:rgba(99,102,241,0.05); border:1px solid rgba(99,102,241,0.2); border-radius:12px; margin-bottom:24px;">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; padding:16px; background:#eff6ff; border:1px solid rgba(59,130,246,0.2); border-radius:12px; margin-bottom:24px;">
             <div>
-              <div style="font-size:11px; font-weight:700; color:#818cf8; margin-bottom:6px; text-transform:uppercase; display:flex; align-items:center; gap:6px;"><i data-lucide="zap" style="width:14px;height:14px;"></i> NHẬP TỪ ĐƠN HÀNG</div>
-              <select class="form-group" style="margin:0; width:100%; border:none; background:rgba(0,0,0,0.3); color:white; padding:10px 14px; border-radius:8px; outline:none; font-family:inherit; font-size:13px;" onchange="importOrderData(this.value)">
-                ${ordersHtml}
+              <div style="font-size:11px; font-weight:700; color:#3b82f6; margin-bottom:6px; text-transform:uppercase; display:flex; align-items:center; gap:6px;"><i data-lucide="package" style="width:14px;height:14px;"></i> THÊM NHANH TỪ SẢN PHẨM</div>
+              <select class="form-group" style="margin:0; width:100%; border:1px solid var(--border); background:#ffffff; color:var(--text-primary); padding:10px 14px; border-radius:8px; outline:none; font-family:inherit; font-size:13px; box-shadow:var(--shadow-sm);" onchange="quickAddProduct(this.value); this.value=''">
+                ${productsHtml}
               </select>
             </div>
             <div>
-              <div style="font-size:11px; font-weight:700; color:#818cf8; margin-bottom:6px; text-transform:uppercase; display:flex; align-items:center; gap:6px;"><i data-lucide="building-2" style="width:14px;height:14px;"></i> NHẬP TỪ CÔNG TY</div>
-              <select class="form-group" style="margin:0; width:100%; border:none; background:rgba(0,0,0,0.3); color:white; padding:10px 14px; border-radius:8px; outline:none; font-family:inherit; font-size:13px;" onchange="importCompanyData(this.value)">
+              <div style="font-size:11px; font-weight:700; color:#3b82f6; margin-bottom:6px; text-transform:uppercase; display:flex; align-items:center; gap:6px;"><i data-lucide="building-2" style="width:14px;height:14px;"></i> NHẬP TỪ CÔNG TY</div>
+              <select class="form-group" style="margin:0; width:100%; border:1px solid var(--border); background:#ffffff; color:var(--text-primary); padding:10px 14px; border-radius:8px; outline:none; font-family:inherit; font-size:13px; box-shadow:var(--shadow-sm);" onchange="importCompanyData(this.value)">
                 ${companiesHtml}
               </select>
             </div>
@@ -870,18 +1057,18 @@
             </table>
           </div>
           
-          <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:16px; padding:16px; background:rgba(0,0,0,0.2); border-radius:12px; border:1px solid var(--border);">
-            <button type="button" class="btn btn-ghost" style="border-style:dashed;" onclick="addBlankRow()"><i data-lucide="plus"></i> Thêm dòng</button>
+          <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:16px; padding:16px; background:#f8fafc; border-radius:12px; border:1px solid var(--border); box-shadow:var(--shadow-sm);">
+            <button type="button" class="btn btn-ghost" style="border:1px dashed var(--border); background:#ffffff;" onclick="addBlankRow()"><i data-lucide="plus"></i> Thêm dòng</button>
             <div style="text-align:right;">
-              <div style="font-size:14px; margin-bottom:4px; color:var(--text-secondary);">Cộng tiền hàng: <span id="q_subtotal_display" style="font-weight:600; color:white;">0</span> đ</div>
-              <div style="font-size:14px; margin-bottom:8px; color:var(--text-secondary);">Thuế VAT (8%): <span id="q_vat_display" style="font-weight:600; color:white;">0</span> đ</div>
+              <div style="font-size:14px; margin-bottom:4px; color:var(--text-secondary);">Cộng tiền hàng: <span id="q_subtotal_display" style="font-weight:600; color:var(--text-primary);">0</span> đ</div>
+              <div style="font-size:14px; margin-bottom:8px; color:var(--text-secondary);">Thuế VAT (8%): <span id="q_vat_display" style="font-weight:600; color:var(--text-primary);">0</span> đ</div>
               <div style="font-size:20px; font-weight:700;">Tổng thanh toán: <span id="q_total_display" style="color:var(--success)">0</span> đ</div>
             </div>
           </div>
 
           <div class="form-group" style="margin-top:24px;">
             <label>Điều khoản thương mại</label>
-            <textarea id="q_terms" rows="4" style="background:rgba(0,0,0,0.2)">${q?.terms || '1. Thời hạn báo giá: 14 ngày.\n2. Giá chưa bao gồm VAT.\n3. Tạm ứng 50% ngay sau khi xác nhận.'}</textarea>
+            <textarea id="q_terms" rows="4" style="background:#ffffff; color:var(--text-primary); border:1px solid var(--border); padding:12px; border-radius:10px; width:100%; box-sizing:border-box; box-shadow:var(--shadow-sm); outline:none;">${q?.terms || '1. Thời hạn báo giá: 14 ngày.\n2. Giá chưa bao gồm VAT.\n3. Tạm ứng 50% ngay sau khi xác nhận.'}</textarea>
           </div>
 
           <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:32px; padding-top:24px; border-top:1px solid var(--border);">
@@ -896,18 +1083,15 @@
       calcTotal();
     }
 
-    window.importOrderData = (orderId) => {
-      if (!orderId) return;
-      const order = window.tempOrders.find(o => o.id == orderId);
-      if (!order) return;
-      document.getElementById('q_customer').value = order.customer?.name || '';
-      if (document.getElementById('q_phone') && order.customer?.phone) document.getElementById('q_phone').value = order.customer.phone;
-      if (document.getElementById('q_address') && order.customer?.address) document.getElementById('q_address').value = order.customer.address;
-
-      const tbody = document.getElementById('items-body'); tbody.innerHTML = '';
-      if (order.details?.length > 0) order.details.forEach(d => addBlankRow(d.product?.name || '', d.product?.product_code || '', 'Cái', d.quantity, parseFloat(d.price), d.product?.image || ''));
-      else addBlankRow();
-      calcTotal(); showToast('Đã điền dữ liệu từ đơn hàng!');
+    window.quickAddProduct = (productId) => {
+      if (!productId) return;
+      const prod = window.tempProducts.find(p => p.id == productId);
+      if (!prod) return;
+      
+      // Add row to items table
+      addBlankRow(prod.name, prod.product_code, '', 1, parseFloat(prod.price), prod.image || '');
+      calcTotal();
+      showToast(`Đã thêm sản phẩm: ${prod.name}`);
     };
 
     window.importCompanyData = (companyId) => {
@@ -921,7 +1105,7 @@
       showToast('Đã điền thông tin công ty!');
     };
 
-    window.addBlankRow = (name = '', content = '', unit = 'Cái', qty = 1, price = 0, image = '') => {
+    window.addBlankRow = (name = '', content = '', unit = '', qty = 1, price = 0, image = '') => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td style="padding:8px; text-align:center; position:relative;">
@@ -932,11 +1116,11 @@
             <button type="button" onclick="event.preventDefault(); event.stopPropagation(); this.previousElementSibling.value=''; this.previousElementSibling.previousElementSibling.previousElementSibling.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjZWVlIi8+PC9zdmc+';" style="position:absolute; top:-5px; right:-5px; background:var(--danger); color:white; border:none; border-radius:50%; width:16px; height:16px; font-size:10px; cursor:pointer; display:flex; align-items:center; justify-content:center;">&times;</button>
           </label>
         </td>
-        <td style="padding:8px"><input type="text" class="i-name form-group" style="margin:0; width:100%; padding:8px; border-radius:6px; background:rgba(255,255,255,0.03); border:1px solid var(--border); color:white; outline:none;" value="${name}"></td>
-        <td style="padding:8px"><input type="text" class="i-content" style="margin:0; width:100%; padding:8px; border-radius:6px; background:rgba(255,255,255,0.03); border:1px solid var(--border); color:white; outline:none;" value="${content}"></td>
-        <td style="padding:8px"><input type="text" class="i-unit" style="margin:0; width:100%; padding:8px; border-radius:6px; background:rgba(255,255,255,0.03); border:1px solid var(--border); color:white; outline:none; text-align:center;" value="${unit}"></td>
-        <td style="padding:8px"><input type="number" class="i-qty" style="margin:0; width:100%; padding:8px; border-radius:6px; background:rgba(255,255,255,0.03); border:1px solid var(--border); color:white; outline:none; text-align:center;" min="1" value="${qty}" oninput="calcRow(this)"></td>
-        <td style="padding:8px"><input type="text" class="i-price" style="margin:0; width:100%; padding:8px; border-radius:6px; background:rgba(255,255,255,0.03); border:1px solid var(--border); color:white; outline:none; text-align:right;" value="${formatMoney(price)}" oninput="formatInputMoney(this); calcRow(this)"></td>
+        <td style="padding:8px"><input type="text" class="i-name form-group" style="margin:0; width:100%; padding:8px; border-radius:8px; background:#ffffff; border:1px solid var(--border); color:var(--text-primary); outline:none; box-shadow:var(--shadow-sm);" value="${name}"></td>
+        <td style="padding:8px"><input type="text" class="i-content" style="margin:0; width:100%; padding:8px; border-radius:8px; background:#ffffff; border:1px solid var(--border); color:var(--text-primary); outline:none; box-shadow:var(--shadow-sm);" value="${content}"></td>
+        <td style="padding:8px"><input type="text" class="i-unit" style="margin:0; width:100%; padding:8px; border-radius:8px; background:#ffffff; border:1px solid var(--border); color:var(--text-primary); outline:none; text-align:center; box-shadow:var(--shadow-sm);" value="${unit}"></td>
+        <td style="padding:8px"><input type="number" class="i-qty" style="margin:0; width:100%; padding:8px; border-radius:8px; background:#ffffff; border:1px solid var(--border); color:var(--text-primary); outline:none; text-align:center; box-shadow:var(--shadow-sm);" min="1" value="${qty}" oninput="calcRow(this)"></td>
+        <td style="padding:8px"><input type="text" class="i-price" style="margin:0; width:100%; padding:8px; border-radius:8px; background:#ffffff; border:1px solid var(--border); color:var(--text-primary); outline:none; text-align:right; box-shadow:var(--shadow-sm);" value="${formatMoney(price)}" oninput="formatInputMoney(this); calcRow(this)"></td>
         <td style="padding:8px"><input type="text" class="i-total" style="margin:0; width:100%; padding:8px; border:none; background:transparent; color:var(--success); font-weight:600; text-align:right; outline:none;" value="${formatMoney(qty * price)}" readonly></td>
         <td style="padding:8px; text-align:center"><button type="button" class="btn-icon-header" style="color:var(--danger); margin:0 auto;" onclick="this.closest('tr').remove(); calcTotal()"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></button></td>
       `;
@@ -991,6 +1175,7 @@
     };
 
     window.saveQuote = async () => {
+      if (user.role === 'STAFF') { return showToast('Bạn chỉ có quyền xem', 'error'); }
       const btn = document.querySelector('button[onclick="saveQuote()"]');
       const originalContent = btn.innerHTML;
 
@@ -1019,8 +1204,10 @@
 
       try {
         const totalAmount = calcTotal();
+        const existingQuote = quotes.find(q => q.id === window.currentQuoteIdTemp);
         const quoteData = {
           id: window.currentQuoteIdTemp,
+          orderId: existingQuote ? existingQuote.orderId : null,
           customer,
           receiver: document.getElementById('q_receiver').value.trim(),
           address: document.getElementById('q_address').value.trim(),
@@ -1032,13 +1219,13 @@
           totalAmount
         };
 
+        // Sync to Orders module
+        const newOrderId = await syncToOrder(quoteData);
+        if (newOrderId) quoteData.orderId = newOrderId;
+
         const idx = quotes.findIndex(q => q.id === window.currentQuoteIdTemp);
         if (idx >= 0) quotes[idx] = quoteData; else quotes.unshift(quoteData);
-
         localStorage.setItem('crm_quotes', JSON.stringify(quotes));
-
-        // Sync to Orders module
-        await syncToOrder(quoteData);
 
         showToast('Đã lưu Báo giá và đồng bộ sang Đơn hàng!');
         loadView('quotation');
@@ -1053,32 +1240,49 @@
 
     async function syncToOrder(quoteData) {
       try {
-        // Optional: Find customer_id by name from existing users/customers
-        // For this demo, we'll try to find an admin or user just to satisfy the model
-        // but typically we'd look up the customer table.
+        // Tìm và xóa các đơn hàng cũ có cùng mã (order_code = quoteData.id)
+        // Điều này đảm bảo không bao giờ bị trùng lặp đơn hàng cho cùng một báo giá
+        const allOrders = await fetchAPI('/orders');
+        const oldOrders = allOrders.filter(o => o.order_code === quoteData.id);
+        
+        for (const old of oldOrders) {
+          try {
+            await fetchAPI(`/orders/${old.id}`, { method: 'DELETE' });
+          } catch (e) { console.warn('Lỗi khi xóa đơn cũ:', e); }
+        }
 
         const orderPayload = {
-          customer_name_manual: quoteData.customer, // Custom field if needed
+          order_code: quoteData.id, // Dùng mã báo giá làm mã đơn hàng để dễ quản lý
           total_price: quoteData.totalAmount,
-          items: quoteData.items.map(i => ({
-            name: i.name,
-            quantity: i.qty,
-            price: i.price
-          })),
+          items: [],
           status: 'pending'
         };
 
-        // If we want to be fancy, we can search for customer by name first
+        // Tìm customer_id
         const allUsers = await fetchAPI('/users');
         const match = allUsers.find(u => u.name.toLowerCase() === quoteData.customer.toLowerCase());
         if (match) orderPayload.customer_id = match.id;
 
-        await fetchAPI('/orders/admin-create', {
+        // Tìm product_id cho từng item (dựa vào tên)
+        const allProducts = await fetchAPI('/products');
+        orderPayload.items = quoteData.items.map(i => {
+          const pMatch = allProducts.find(p => p.name.toLowerCase() === i.name.toLowerCase());
+          return {
+            product_id: pMatch ? pMatch.id : 1,
+            quantity: i.qty,
+            price: i.price
+          };
+        });
+
+        const res = await fetchAPI('/orders/admin-create', {
           method: 'POST',
           body: JSON.stringify(orderPayload)
         });
+        
+        return res.order ? res.order.id : null;
       } catch (err) {
         console.error('Order sync failed:', err);
+        return null;
       }
     }
 
@@ -1630,7 +1834,301 @@
       }
     };
 
-    loadView('dashboard');
+    // ==========================================
+    // GLOBAL SEARCH SYSTEM
+    // ==========================================
+    let globalSearchData = { users: [], companies: [], products: [], quotes: [], orders: [] };
+    let isSearchDataLoaded = false;
+    let searchDebounceTimer = null;
+    let currentSearchIndex = -1;
+
+    const loadGlobalSearchData = async () => {
+      if (isSearchDataLoaded) return;
+      try {
+        const [uRes, cRes, pRes, oRes] = await Promise.all([
+          fetchAPI('/users').catch(() => []),
+          fetchAPI('/companies').catch(() => []),
+          fetchAPI('/products').catch(() => []),
+          fetchAPI('/orders').catch(() => [])
+        ]);
+        globalSearchData.users = uRes.filter(u => u.role === 'CUSTOMER');
+        globalSearchData.companies = cRes;
+        globalSearchData.products = pRes;
+        globalSearchData.orders = oRes;
+        isSearchDataLoaded = true;
+      } catch (e) {
+        console.error("Lỗi tải dữ liệu search:", e);
+      }
+    };
+
+    const highlightText = (text, query) => {
+      if (!query || !text) return text || '';
+      const regex = new RegExp(`(${query.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')})`, 'gi');
+      return text.toString().replace(regex, '<span class="search-highlight">$1</span>');
+    };
+
+    const renderRecentSearches = () => {
+      const recent = JSON.parse(localStorage.getItem('crm_recent_searches') || '[]');
+      if (recent.length === 0) {
+        return `
+          <div class="search-empty">
+            <i data-lucide="search" style="margin: 0 auto 12px; width:32px; height:32px; color:var(--text-secondary);"></i>
+            <div class="search-empty-text">Nhập từ khóa để tìm kiếm...</div>
+          </div>
+        `;
+      }
+      return `
+        <div class="search-section">
+          <div class="search-section-title"><i data-lucide="history" style="width:14px;height:14px"></i> Lịch sử tìm kiếm</div>
+          ${recent.map((r) => `
+            <button type="button" class="search-item" onclick="document.getElementById('global-search-input').value='${r}'; handleGlobalSearch('${r}')">
+              <div class="search-item-icon" style="background:transparent; color:var(--text-secondary)"><i data-lucide="clock"></i></div>
+              <div class="search-item-content">
+                <div class="search-item-title" style="font-weight:500;">${r}</div>
+              </div>
+            </button>
+          `).join('')}
+        </div>
+      `;
+    };
+
+    window.handleGlobalSearch = async (query) => {
+      const dropdown = document.getElementById('global-search-dropdown');
+      query = query.trim().toLowerCase();
+      
+      if (!query) {
+        dropdown.innerHTML = renderRecentSearches();
+        if(window.lucide) lucide.createIcons();
+        dropdown.classList.add('show');
+        currentSearchIndex = -1;
+        return;
+      }
+
+      if (!isSearchDataLoaded) {
+        dropdown.innerHTML = '<div class="search-empty"><i data-lucide="loader-2" class="spin" style="margin: 0 auto 12px; width:32px; height:32px; color:var(--accent);"></i><div class="search-empty-text">Đang tải dữ liệu...</div></div>';
+        if(window.lucide) lucide.createIcons();
+        dropdown.classList.add('show');
+        await loadGlobalSearchData();
+      }
+
+      globalSearchData.quotes = JSON.parse(localStorage.getItem('crm_quotes') || '[]');
+
+      const results = { customers: [], companies: [], products: [], quotes: [] };
+      const isMatch = (str, q) => str && str.toString().toLowerCase().includes(q);
+
+      globalSearchData.users.forEach(u => {
+        if (isMatch(u.name, query) || isMatch(u.email, query) || isMatch(u.phone, query)) {
+          results.customers.push({ type: 'customers', id: u.id, name: u.name, desc: u.email || u.phone || 'Khách hàng', icon: 'user' });
+        }
+      });
+
+      globalSearchData.companies.forEach(c => {
+        if (isMatch(c.name, query) || isMatch(c.email, query) || isMatch(c.phone, query)) {
+          results.companies.push({ type: 'companies', id: c.id, name: c.name, desc: c.email || c.phone || 'Công ty', icon: 'building-2' });
+        }
+      });
+
+      globalSearchData.products.forEach(p => {
+        if (isMatch(p.name, query) || isMatch(p.product_code, query)) {
+          results.products.push({ type: 'products', id: p.id, name: p.name, desc: `${p.product_code} • ${formatMoney(p.price)} đ`, icon: 'package' });
+        }
+      });
+
+      globalSearchData.quotes.forEach(q => {
+        if (isMatch(q.id, query) || isMatch(q.customer, query)) {
+          results.quotes.push({ type: 'quotes', id: q.id, name: `Báo giá ${q.id}`, desc: `KH: ${q.customer} • ${formatMoney(q.totalAmount)} đ`, icon: 'file-text' });
+        }
+      });
+
+      const totalResults = results.customers.length + results.companies.length + results.products.length + results.quotes.length;
+      
+      if (totalResults === 0) {
+        dropdown.innerHTML = `
+          <div class="search-empty">
+            <i data-lucide="inbox" style="margin: 0 auto 12px; width:32px; height:32px; color:var(--text-secondary);"></i>
+            <div class="search-empty-text">Không tìm thấy kết quả cho "${query}"</div>
+          </div>
+        `;
+        if(window.lucide) lucide.createIcons();
+        currentSearchIndex = -1;
+        return;
+      }
+
+      let html = '';
+      const buildSection = (title, items) => {
+        if (items.length === 0) return '';
+        return `
+          <div class="search-section">
+            <div class="search-section-title">${title}</div>
+            ${items.slice(0, 5).map(item => `
+              <button type="button" class="search-item" onclick="executeSearchResult('${item.type}', '${item.id}', '${query}')">
+                <div class="search-item-icon"><i data-lucide="${item.icon}"></i></div>
+                <div class="search-item-content">
+                  <div class="search-item-title">${highlightText(item.name, query)}</div>
+                  <div class="search-item-desc">${highlightText(item.desc, query)}</div>
+                </div>
+              </button>
+            `).join('')}
+          </div>
+        `;
+      };
+
+      html += buildSection('Sản phẩm', results.products);
+      html += buildSection('Báo giá', results.quotes);
+      html += buildSection('Khách hàng', results.customers);
+      html += buildSection('Công ty', results.companies);
+
+      dropdown.innerHTML = html;
+      if(window.lucide) lucide.createIcons();
+      currentSearchIndex = -1;
+    };
+
+    window.executeSearchResult = (type, id, query) => {
+      if (query) {
+        let recent = JSON.parse(localStorage.getItem('crm_recent_searches') || '[]');
+        recent = [query, ...recent.filter(r => r !== query)].slice(0, 5);
+        localStorage.setItem('crm_recent_searches', JSON.stringify(recent));
+      }
+
+      const dropdown = document.getElementById('global-search-dropdown');
+      const container = document.getElementById('global-search-container');
+      const overlay = document.getElementById('global-search-overlay');
+      
+      dropdown.classList.remove('show');
+      container.classList.remove('focused');
+      overlay.classList.remove('show');
+      
+      if (type === 'products' || type === 'customers' || type === 'companies') {
+        loadView(type).then(() => { setTimeout(() => openCrudModal(parseInt(id)), 300); });
+      } else if (type === 'quotes') {
+        loadView('quotation_form', id);
+      }
+    };
+
+    const setupGlobalSearch = () => {
+      const input = document.getElementById('global-search-input');
+      const dropdown = document.getElementById('global-search-dropdown');
+      const container = document.getElementById('global-search-container');
+      const overlay = document.getElementById('global-search-overlay');
+      if(!input) return;
+
+      const closeSearch = () => {
+        dropdown.classList.remove('show');
+        container.classList.remove('focused');
+        overlay.classList.remove('show');
+        input.blur();
+      };
+
+      document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+          e.preventDefault();
+          input.focus();
+        }
+      });
+
+      input.addEventListener('focus', () => { 
+        container.classList.add('focused');
+        overlay.classList.add('show');
+        handleGlobalSearch(input.value); 
+      });
+      
+      input.addEventListener('click', () => {
+         if(!dropdown.classList.contains('show')) {
+            container.classList.add('focused');
+            overlay.classList.add('show');
+            handleGlobalSearch(input.value);
+         }
+      });
+
+      input.addEventListener('input', (e) => {
+        clearTimeout(searchDebounceTimer);
+        searchDebounceTimer = setTimeout(() => { handleGlobalSearch(e.target.value); }, 300);
+      });
+
+      input.addEventListener('keydown', (e) => {
+        const items = dropdown.querySelectorAll('.search-item');
+        if (!dropdown.classList.contains('show') || items.length === 0) return;
+
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          currentSearchIndex = (currentSearchIndex + 1) % items.length;
+          updateSearchSelection(items);
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          currentSearchIndex = (currentSearchIndex - 1 + items.length) % items.length;
+          updateSearchSelection(items);
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          if (currentSearchIndex >= 0 && currentSearchIndex < items.length) {
+            items[currentSearchIndex].click();
+          } else if (items.length > 0 && input.value.trim() !== '') {
+            items[0].click();
+          }
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          closeSearch();
+        }
+      });
+
+      const updateSearchSelection = (items) => {
+        items.forEach((item, idx) => {
+          if (idx === currentSearchIndex) {
+            item.classList.add('active');
+            item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+          } else {
+            item.classList.remove('active');
+          }
+        });
+      };
+
+      document.addEventListener('click', (e) => {
+        if (container && !container.contains(e.target)) {
+          closeSearch();
+        }
+      });
+      
+      overlay.addEventListener('click', closeSearch);
+    };
+
+    setTimeout(setupGlobalSearch, 500);
+
+    // ==========================================
+    // INITIALIZE ROUTER
+    // ==========================================
+    const initRouter = () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const pathParam = urlParams.get('path');
+      let currentPath = pathParam || window.location.pathname;
+      let paramId = urlParams.get('id');
+
+      if (pathParam) {
+        // Clean up the URL if we came from index.html fallback
+        const cleanUrl = currentPath + (paramId ? `?id=${paramId}` : '');
+        window.history.replaceState({ view: currentPath.replace('/', ''), param: paramId }, "", cleanUrl);
+      }
+
+      let initialView = 'dashboard';
+      if (currentPath.includes('/orders')) initialView = 'orders';
+      else if (currentPath.includes('/products')) initialView = 'products';
+      else if (currentPath.includes('/users')) initialView = 'users';
+      else if (currentPath.includes('/customers')) initialView = 'customers';
+      else if (currentPath.includes('/companies')) initialView = 'companies';
+      else if (currentPath.includes('/quotation_form')) initialView = 'quotation_form';
+      else if (currentPath.includes('/quotation') || currentPath.includes('/quotations')) initialView = 'quotation';
+      else if (currentPath.includes('/profile')) initialView = 'profile';
+
+      loadView(initialView, paramId, true);
+    };
+
+    window.addEventListener('popstate', (e) => {
+      if (e.state && e.state.view) {
+        loadView(e.state.view, e.state.param, true);
+      } else {
+        initRouter();
+      }
+    });
+
+    initRouter();
   </script>
 </body>
 

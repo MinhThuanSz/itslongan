@@ -106,11 +106,11 @@ const create = async (req, res) => {
 // POST /orders/admin-create - ADMIN/MANAGER tạo đơn trực tiếp
 const adminCreate = async (req, res) => {
   try {
-    const { customer_id, items, total_price, status } = req.body;
+    const { customer_id, items, total_price, status, order_code } = req.body;
     
     // Tạo order
     const order = await Order.create({
-      order_code: generateOrderCode(),
+      order_code: order_code || generateOrderCode(),
       customer_id: customer_id || req.user.id,
       total_price: total_price || 0,
       status: status || 'pending',
@@ -150,4 +150,28 @@ const updateStatus = async (req, res) => {
   }
 };
 
-module.exports = { getAll, getById, create, updateStatus, adminCreate };
+// DELETE /orders/:id - ADMIN/MANAGER
+const remove = async (req, res) => {
+  try {
+    // Tìm theo ID hoặc order_code để đảm bảo tính linh hoạt
+    const order = await Order.findOne({
+      where: {
+        [Op.or]: [
+          { id: req.params.id },
+          { order_code: req.params.id }
+        ]
+      }
+    });
+
+    if (!order) return res.status(404).json({ message: 'Không tìm thấy đơn hàng trong hệ thống' });
+    
+    await OrderDetail.destroy({ where: { order_id: order.id } });
+    await order.destroy();
+    
+    res.json({ message: 'Xóa đơn hàng thành công' });
+  } catch (err) {
+    res.status(500).json({ message: 'Lỗi server khi xóa đơn hàng', error: err.message });
+  }
+};
+
+module.exports = { getAll, getById, create, updateStatus, adminCreate, remove };

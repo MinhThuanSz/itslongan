@@ -17,6 +17,16 @@
   <!-- Icons -->
   <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
   <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+
+  <!-- Router Fallback -->
+  <script>
+    const dashboardRoutes = ['/dashboard', '/orders', '/quotations', '/customers', '/companies', '/products', '/users', '/quotation', '/quotation_form', '/profile'];
+    if (dashboardRoutes.includes(window.location.pathname)) {
+      const search = window.location.search;
+      const paramStr = search ? '&' + search.substring(1) : '';
+      window.location.replace('/dashboard.html?path=' + window.location.pathname + paramStr);
+    }
+  </script>
 </head>
 
 <body>
@@ -383,7 +393,7 @@
       const user = JSON.parse(localStorage.getItem('crm_user') || 'null');
 
       if (token && user) {
-        const roleMap = { 'CUSTOMER': 'Khách hàng', 'ADMIN': 'Quản trị viên', 'MANAGER': 'Quản lý' };
+        const roleMap = { 'CUSTOMER': 'Khách hàng', 'ADMIN': 'Quản trị viên', 'MANAGER': 'Quản lý', 'STAFF': 'Nhân viên ITS' };
         const displayRole = roleMap[user.role] || user.role.toLowerCase();
         
         // Logged in UI

@@ -25,6 +25,25 @@ const Quotation = sequelize.define('Quotation', {
     allowNull: false,
     defaultValue: 0,
   },
+  sub_total: {
+    type: DataTypes.DECIMAL(15, 2),
+    allowNull: false,
+    defaultValue: 0,
+  },
+  discount: {
+    type: DataTypes.DECIMAL(15, 2),
+    allowNull: false,
+    defaultValue: 0,
+  },
+  vat: {
+    type: DataTypes.DECIMAL(15, 2),
+    allowNull: false,
+    defaultValue: 0,
+  },
+  status: {
+    type: DataTypes.ENUM('draft', 'sent', 'approved', 'rejected', 'pending'),
+    defaultValue: 'draft',
+  },
   note: {
     type: DataTypes.TEXT,
     allowNull: true,
